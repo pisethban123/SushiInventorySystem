@@ -21,11 +21,5 @@ namespace SushiInventorySystem.Models
 
         [ForeignKey(nameof(BranchId))]
         public Branch? Branch { get; set; }
-
-        //Virtual Method - Can be overridden in subclasses
-        public virtual string CheckStatus()
-        {
-            return $"Stock {StockId} ({ItemId}) - Quantity: {Quantity}";
-        }
     }
 }

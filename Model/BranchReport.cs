@@ -2,33 +2,45 @@
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using SushiInventorySystem.Data;
+using System.Collections.Generic;
+using SushiInventorySystem.Models;
 
 namespace SushiInventorySystem.Models
 {
     public class BranchReport : IReport
     {
-        private readonly AppDbContext _context;
-        public BranchReport(AppDbContext context) => _context = context;
+        private readonly int _branchCount;
+        private readonly List<Stock> _stocks;
 
-        public string GenerateSummary()
+        public BranchReport(AppDbContext context)
         {
-            var branchCount = _context.Branches.Count();
+            // ✅ 데이터 즉시 메모리에 로드
+            _branchCount = context.Branches.Count();
 
-            // Read data from DB to memory and move to memory
-            var stocks = _context.Stocks
+            _stocks = context.Stocks
                 .Include(s => s.Item)
                 .Include(s => s.Branch)
                 .Where(s => s.Item != null && s.Branch != null)
-                .ToList(); // Important: Load to Memory
+                .ToList();
+        }
 
-            // Avg calculation in Memory by group
-            var avgStock = stocks
+        public string GenerateSummary()
+        {
+            // ✅ 메모리 내 데이터로 계산
+            var avgStockByBranch = _stocks
                 .GroupBy(s => s.Branch!.BranchName)
-                .Select(g => g.Average(x => x.Quantity))
-                .DefaultIfEmpty(0)
-                .Average();
+                .Select(g => new
+                {
+                    Branch = g.Key,
+                    AvgQty = g.Average(x => x.Quantity)
+                })
+                .ToList();
 
-            return $"[Branch Report]\nTotal Branches: {branchCount}\nAverage Stock per Branch: {avgStock:F1}";
+            var avgOverall = avgStockByBranch.Select(a => a.AvgQty).DefaultIfEmpty(0).Average();
+
+            return $"[Branch Report]\n" +
+                   $"Total Branches: {_branchCount}\n" +
+                   $"Average Stock per Branch: {avgOverall:F1}";
         }
     }
 }
