@@ -1,5 +1,10 @@
 ﻿@page "/branch"
 @using MudBlazor
+@using SushiInventorySystem.Data;
+@using SushiInventorySystem.Models;
+@using SushiInventorySystem.Services.Interfaces;
+@inject IBranchService BranchService
+
 
 <PageTitle>Branch Management</PageTitle>
 
@@ -23,7 +28,6 @@
               Bordered="true"
               Dense="false"
               RowsPerPage="10"
-              Filter="new Func<BranchModel, bool>(FilterFunc)"
               Class="branch-table">
         <ToolBarContent>
             <MudText Typo="Typo.h6" Class="toolbar-title">Branch List</MudText>
@@ -41,7 +45,7 @@
             <MudTh>Branch Name</MudTh>
             <MudTh Class="address-column">Address</MudTh>
             <MudTh Class="postcode-column">Postcode</MudTh>
-            <MudTh Class="contact-column">Contact</MudTh>
+            <MudTh Class="contact-column">Phone</MudTh>
             <MudTh Style="text-align: center;">Actions</MudTh>
         </HeaderContent>
         <RowTemplate>
@@ -49,7 +53,7 @@
             <MudTd DataLabel="Branch Name">@context.BranchName</MudTd>
             <MudTd DataLabel="Address" Class="address-column">@context.Address</MudTd>
             <MudTd DataLabel="Postcode" Class="postcode-column">@context.Postcode</MudTd>
-            <MudTd DataLabel="Contact" Class="contact-column">@context.Contact</MudTd>
+            <MudTd DataLabel="Contact" Class="contact-column">@context.Phone</MudTd>
             <MudTd DataLabel="Actions" Style="text-align: center;">
                 <MudIconButton Size="Size.Small"
                                Icon="@Icons.Material.Outlined.Edit"
@@ -159,70 +163,49 @@
 </style>
 
 @code {
-    private List<BranchModel> branches = new();
+    private List<Branch> branches = new();
     private string searchString = "";
     private bool isAddDialogOpen = false;
-    private BranchModel newBranch = new();
+    private Branch newBranch = new();
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        branches = new List<BranchModel>
+        try
         {
-            new BranchModel { BranchId = "B001", BranchName = "Main Branch", Address = "123 Main Street, Sydney", Postcode = "2000", Contact = "02-1234-5678" },
-            new BranchModel { BranchId = "B002", BranchName = "North Branch", Address = "456 North Road, Chatswood", Postcode = "2067", Contact = "02-2345-6789" },
-            new BranchModel { BranchId = "B003", BranchName = "South Branch", Address = "789 South Avenue, Hurstville", Postcode = "2220", Contact = "02-3456-7890" },
-            new BranchModel { BranchId = "B004", BranchName = "East Branch", Address = "321 East Boulevard, Bondi", Postcode = "2026", Contact = "02-4567-8901" },
-            new BranchModel { BranchId = "B005", BranchName = "West Branch", Address = "654 West Parade, Parramatta", Postcode = "2150", Contact = "02-5678-9012" },
-            new BranchModel { BranchId = "B006", BranchName = "Central Branch", Address = "987 Central Plaza, Bankstown", Postcode = "2200", Contact = "02-6789-0123" },
-            new BranchModel { BranchId = "B007", BranchName = "Harbour Branch", Address = "147 Harbour Street, Manly", Postcode = "2095", Contact = "02-7890-1234" },
-            new BranchModel { BranchId = "B008", BranchName = "City Branch", Address = "258 City Road, Ultimo", Postcode = "2007", Contact = "02-8901-2345" }
-        };
+            var result = await BranchService.GetAllAsync();
+            branches = result.ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching branches: {ex.Message}");
+        }
     }
 
-    private bool FilterFunc(BranchModel branch)
-    {
-        if (string.IsNullOrWhiteSpace(searchString))
-            return true;
 
-        if (branch.BranchId.Contains(searchString, StringComparison.OrdinalIgnoreCase))
-            return true;
+  // private bool FilterFunc(Branch branch)
+  //   {
+  //       if (string.IsNullOrWhiteSpace(searchString))
+  //           return true;
 
-        if (branch.BranchName.Contains(searchString, StringComparison.OrdinalIgnoreCase))
-            return true;
-
-        if (branch.Address.Contains(searchString, StringComparison.OrdinalIgnoreCase))
-            return true;
-
-        if (branch.Postcode.Contains(searchString, StringComparison.OrdinalIgnoreCase))
-            return true;
-
-        if (branch.Contact.Contains(searchString, StringComparison.OrdinalIgnoreCase))
-            return true;
-
-        return false;
-    }
+  //       return branch.BranchId.Contains(searchString, StringComparison.OrdinalIgnoreCase)
+  //           || branch.BranchName.Contains(searchString, StringComparison.OrdinalIgnoreCase)
+  //           || branch.Address.Contains(searchString, StringComparison.OrdinalIgnoreCase)
+  //           || branch.Postcode.Contains(searchString, StringComparison.OrdinalIgnoreCase)
+  //           || branch.Contact.Contains(searchString, StringComparison.OrdinalIgnoreCase);
+  //   }
 
     private void HandleAdd()
     {
         // Add logic will be implemented later
     }
 
-    private void HandleEdit(BranchModel branch)
+    private void HandleEdit(Branch branch)
     {
         // Edit logic will be implemented later
     }
 
-    private void HandleDelete(BranchModel branch)
+    private void HandleDelete(Branch branch)
     {
         // Delete logic will be implemented later
-    }
-
-    public class BranchModel
-    {
-        public string BranchId { get; set; } = string.Empty;
-        public string BranchName { get; set; } = string.Empty;
-        public string Address { get; set; } = string.Empty;
-        public string Postcode { get; set; } = string.Empty;
-        public string Contact { get; set; } = string.Empty;
     }
 }
