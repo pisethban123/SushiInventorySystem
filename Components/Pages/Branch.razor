@@ -1,0 +1,228 @@
+﻿@page "/branch"
+@using MudBlazor
+
+<PageTitle>Branch Management</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4 px-2">
+    <MudText Typo="Typo.h4" Class="mb-4">Branch Management</MudText>
+
+    @* Add Button *@
+    <MudStack Row="true" Class="mb-4">
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.Add"
+                   OnClick="HandleAdd">
+            Add
+        </MudButton>
+    </MudStack>
+
+    @* Branch Table *@
+    <MudTable Items="@branches"
+              Hover="true"
+              Striped="true"
+              Bordered="true"
+              Dense="false"
+              RowsPerPage="10"
+              Filter="new Func<BranchModel, bool>(FilterFunc)"
+              Class="branch-table">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6" Class="toolbar-title">Branch List</MudText>
+            <MudSpacer />
+            <MudTextField @bind-Value="searchString"
+                          Placeholder="Search"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          IconSize="Size.Medium"
+                          Class="mt-0 search-field"
+                          Immediate="true"></MudTextField>
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh>Branch ID</MudTh>
+            <MudTh>Branch Name</MudTh>
+            <MudTh Class="address-column">Address</MudTh>
+            <MudTh Class="postcode-column">Postcode</MudTh>
+            <MudTh Class="contact-column">Contact</MudTh>
+            <MudTh Style="text-align: center;">Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Branch ID">@context.BranchId</MudTd>
+            <MudTd DataLabel="Branch Name">@context.BranchName</MudTd>
+            <MudTd DataLabel="Address" Class="address-column">@context.Address</MudTd>
+            <MudTd DataLabel="Postcode" Class="postcode-column">@context.Postcode</MudTd>
+            <MudTd DataLabel="Contact" Class="contact-column">@context.Contact</MudTd>
+            <MudTd DataLabel="Actions" Style="text-align: center;">
+                <MudIconButton Size="Size.Small"
+                               Icon="@Icons.Material.Outlined.Edit"
+                               Color="Color.Secondary"
+                               OnClick="@(() => HandleEdit(context))"
+                               Title="Edit" />
+                <MudIconButton Size="Size.Small"
+                               Icon="@Icons.Material.Outlined.Delete"
+                               Color="Color.Error"
+                               OnClick="@(() => HandleDelete(context))"
+                               Title="Delete" />
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager PageSizeOptions="new int[] { 10, 25, 50, 100 }" />
+        </PagerContent>
+    </MudTable>
+</MudContainer>
+
+<style>
+    /* Ensure all cells have consistent vertical alignment */
+    .branch-table .mud-table-cell {
+        vertical-align: middle !important;
+    }
+
+    /* Mobile - matches NavMenu breakpoint (up to 640px) */
+    @@media (max-width: 640.98px) {
+        .branch-table {
+            font-size: 0.875rem;
+        }
+
+        .address-column {
+            display: none !important;
+        }
+
+        .contact-column {
+            display: none !important;
+        }
+
+        .mud-table-cell,
+        .mud-table-head-cell {
+            padding: 8px 4px !important;
+        }
+        /* Adjust container padding on mobile to match main layout */
+        .mud-container {
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+        }
+        /* Keep toolbar on same row but adjust sizes */
+        .toolbar-title {
+            font-size: 1rem !important;
+            white-space: nowrap;
+        }
+
+        .search-field {
+            max-width: 180px !important;
+        }
+
+            .search-field .mud-input {
+                font-size: 0.875rem;
+            }
+    }
+
+    /* Tablet (641px to 960px) - matches NavMenu desktop breakpoint */
+    @@media (min-width: 641px) and (max-width: 960px) {
+        .postcode-column {
+            display: none !important;
+        }
+
+        .branch-table {
+            font-size: 0.9rem;
+        }
+    }
+
+    /* Medium screens (961px to 1280px) */
+    @@media (min-width: 961px) and (max-width: 1280px) {
+        .branch-table {
+            font-size: 0.95rem;
+        }
+    }
+
+    /* Desktop - matches NavMenu desktop (min-width: 641px) */
+    @@media (min-width: 641px) {
+        .branch-table {
+            overflow-x: auto;
+        }
+    }
+
+    /* Make table scrollable on mobile */
+    @@media (max-width: 640.98px) {
+        .mud-table-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        /* Ensure table fits within mobile viewport */
+        .branch-table {
+            max-width: 100%;
+        }
+    }
+
+    /* Ensure proper spacing when sidebar is visible */
+    @@media (min-width: 641px) {
+        .mud-container {
+            max-width: 100%;
+        }
+    }
+</style>
+
+@code {
+    private List<BranchModel> branches = new();
+    private string searchString = "";
+    private bool isAddDialogOpen = false;
+    private BranchModel newBranch = new();
+
+    protected override void OnInitialized()
+    {
+        branches = new List<BranchModel>
+        {
+            new BranchModel { BranchId = "B001", BranchName = "Main Branch", Address = "123 Main Street, Sydney", Postcode = "2000", Contact = "02-1234-5678" },
+            new BranchModel { BranchId = "B002", BranchName = "North Branch", Address = "456 North Road, Chatswood", Postcode = "2067", Contact = "02-2345-6789" },
+            new BranchModel { BranchId = "B003", BranchName = "South Branch", Address = "789 South Avenue, Hurstville", Postcode = "2220", Contact = "02-3456-7890" },
+            new BranchModel { BranchId = "B004", BranchName = "East Branch", Address = "321 East Boulevard, Bondi", Postcode = "2026", Contact = "02-4567-8901" },
+            new BranchModel { BranchId = "B005", BranchName = "West Branch", Address = "654 West Parade, Parramatta", Postcode = "2150", Contact = "02-5678-9012" },
+            new BranchModel { BranchId = "B006", BranchName = "Central Branch", Address = "987 Central Plaza, Bankstown", Postcode = "2200", Contact = "02-6789-0123" },
+            new BranchModel { BranchId = "B007", BranchName = "Harbour Branch", Address = "147 Harbour Street, Manly", Postcode = "2095", Contact = "02-7890-1234" },
+            new BranchModel { BranchId = "B008", BranchName = "City Branch", Address = "258 City Road, Ultimo", Postcode = "2007", Contact = "02-8901-2345" }
+        };
+    }
+
+    private bool FilterFunc(BranchModel branch)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+
+        if (branch.BranchId.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (branch.BranchName.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (branch.Address.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (branch.Postcode.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (branch.Contact.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return false;
+    }
+
+    private void HandleAdd()
+    {
+        // Add logic will be implemented later
+    }
+
+    private void HandleEdit(BranchModel branch)
+    {
+        // Edit logic will be implemented later
+    }
+
+    private void HandleDelete(BranchModel branch)
+    {
+        // Delete logic will be implemented later
+    }
+
+    public class BranchModel
+    {
+        public string BranchId { get; set; } = string.Empty;
+        public string BranchName { get; set; } = string.Empty;
+        public string Address { get; set; } = string.Empty;
+        public string Postcode { get; set; } = string.Empty;
+        public string Contact { get; set; } = string.Empty;
+    }
+}

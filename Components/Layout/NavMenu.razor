@@ -1,0 +1,41 @@
+﻿<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">Sushi Inventory System</a>
+    </div>
+</div>
+
+<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+
+<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+    <nav class="flex-column">
+        <div class="nav-item px-3">
+        <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+            Dashboard
+        </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="branch" Match="NavLinkMatch.All">
+                Branch
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="item">
+                Item
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="stock">
+                Stock
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="transfer">
+                Transfer
+            </NavLink>
+        </div>
+    </nav>
+</div>
+

@@ -1,0 +1,177 @@
+﻿@page "/item"
+@using MudBlazor
+
+<PageTitle>Item Management</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4 px-2">
+    <MudText Typo="Typo.h4" Class="mb-4">Item Management</MudText>
+
+    @* Add Button *@
+    <MudStack Row="true" Class="mb-4">
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.Add"
+                   OnClick="HandleAdd">
+            Add
+        </MudButton>
+    </MudStack>
+
+    @* Item Table *@
+    <MudTable Items="@ingredients"
+              Hover="true"
+              Striped="true"
+              Bordered="true"
+              Dense="false"
+              Filter="new Func<IngredientModel, bool>(FilterFunc)"
+              Class="ingredient-table">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6" Class="toolbar-title">Item List</MudText>
+            <MudSpacer />
+            <MudTextField @bind-Value="searchString"
+                          Placeholder="Search"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          IconSize="Size.Medium"
+                          Class="mt-0 search-field"
+                          Immediate="true"></MudTextField>
+        </ToolBarContent>
+
+        <HeaderContent>
+            <MudTh>ID</MudTh>
+            <MudTh>Name</MudTh>
+            <MudTh>Category</MudTh>
+            <MudTh>Unit</MudTh>
+            <MudTh>Supplier</MudTh>
+            <MudTh>Cost per Unit ($)</MudTh>
+            <MudTh>Min Qty</MudTh>
+            <MudTh>Max Qty</MudTh>
+            <MudTh Style="text-align: center;">Actions</MudTh>
+        </HeaderContent>
+
+        <RowTemplate>
+            <MudTd DataLabel="ID">@context.Id</MudTd>
+            <MudTd DataLabel="Name">@context.Name</MudTd>
+            <MudTd DataLabel="Category">@context.Category</MudTd>
+            <MudTd DataLabel="Unit">@context.Unit</MudTd>
+            <MudTd DataLabel="Supplier">@context.Supplier</MudTd>
+            <MudTd DataLabel="Minimum Qty">@context.MinimumQty</MudTd>
+            <MudTd DataLabel="Maximum Qty">@context.MaximumQty</MudTd>
+            <MudTd DataLabel="Cost ($)">@context.CostPerUnit.ToString("0.00")</MudTd>
+            <MudTd DataLabel="Actions" Style="text-align: center;">
+                <MudIconButton Size="Size.Small"
+                               Icon="@Icons.Material.Outlined.Edit"
+                               Color="Color.Secondary"
+                               OnClick="@(() => HandleEdit(context))"
+                               Title="Edit" />
+                <MudIconButton Size="Size.Small"
+                               Icon="@Icons.Material.Outlined.Delete"
+                               Color="Color.Error"
+                               OnClick="@(() => HandleDelete(context))"
+                               Title="Delete" />
+            </MudTd>
+        </RowTemplate>
+
+        <PagerContent>
+            <MudTablePager PageSizeOptions="new int[] { 10, 25, 50, 100 }" />
+        </PagerContent>
+    </MudTable>
+</MudContainer>
+
+<style>
+    /* Similar responsive styling to Branch.razor */
+    .ingredient-table .mud-table-cell {
+        vertical-align: middle !important;
+    }
+
+    @@media (max-width: 640.98px) {
+        .ingredient-table {
+            font-size: 0.875rem;
+        }
+
+        .mud-table-cell,
+        .mud-table-head-cell {
+            padding: 8px 4px !important;
+        }
+
+        .toolbar-title {
+            font-size: 1rem !important;
+            white-space: nowrap;
+        }
+
+        .search-field {
+            max-width: 180px !important;
+        }
+    }
+
+    @@media (min-width: 641px) and (max-width: 960px) {
+        .ingredient-table {
+            font-size: 0.9rem;
+        }
+    }
+
+    @@media (min-width: 961px) and (max-width: 1280px) {
+        .ingredient-table {
+            font-size: 0.95rem;
+        }
+    }
+</style>
+
+@code {
+    private List<IngredientModel> ingredients = new();
+    private string searchString = "";
+
+    protected override void OnInitialized()
+    {
+        ingredients = new List<IngredientModel>
+        {
+            new IngredientModel { Id = "ING001", Name = "Salmon Fillet", Category = "Seafood", Unit = "kg", Supplier = "Ocean Fresh Pty Ltd", MinimumQty = 10, MaximumQty = 50, CostPerUnit = 35.00 },
+            new IngredientModel { Id = "ING002", Name = "Sushi Rice", Category = "Staple", Unit = "kg", Supplier = "Tokyo Grain Co.", MinimumQty = 40, MaximumQty = 200, CostPerUnit = 3.50 },
+            new IngredientModel { Id = "ING003", Name = "Soy Sauce", Category = "Condiment", Unit = "L", Supplier = "Kikkoman Australia", MinimumQty = 20, MaximumQty = 100, CostPerUnit = 5.00},
+            new IngredientModel { Id = "ING004", Name = "Seaweed Sheets (Nori)", Category = "Seaweed", Unit = "Pack", Supplier = "Nori Direct Ltd", CostPerUnit = 7.00, MinimumQty = 15, MaximumQty = 60 },
+            new IngredientModel { Id = "ING005", Name = "Avocado", Category = "Vegetable", Unit = "kg", Supplier = "Green Valley Produce", MinimumQty = 5, MaximumQty = 30, CostPerUnit = 10.00 },
+            new IngredientModel { Id = "ING006", Name = "Cucumber", Category = "Vegetable", Unit = "kg", Supplier = "Sydney Fresh Market", MinimumQty = 6, MaximumQty = 40, CostPerUnit = 6.00 },
+            new IngredientModel { Id = "ING007", Name = "Tuna", Category = "Seafood", Unit = "kg", Supplier = "BlueWave Seafood", MinimumQty = 8, MaximumQty = 40, CostPerUnit = 30.00 },
+            new IngredientModel { Id = "ING008", Name = "Wasabi Paste", Category = "Condiment", Unit = "Tube", Supplier = "S&B Foods", MinimumQty = 25, MaximumQty = 100, CostPerUnit = 2.50 },
+            new IngredientModel { Id = "ING009", Name = "Ginger Pickle", Category = "Condiment", Unit = "Jar", Supplier = "Yamato Foods", MinimumQty = 15, MaximumQty = 80, CostPerUnit = 4.20 },
+            new IngredientModel { Id = "ING010", Name = "Tempura Flour", Category = "Dry Goods", Unit = "kg", Supplier = "Asahi Flour Mills", MinimumQty = 10, MaximumQty = 50, CostPerUnit = 8.00 }
+        };
+    }
+
+    private bool FilterFunc(IngredientModel ingredient)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+
+        return ingredient.Id.Contains(searchString, StringComparison.OrdinalIgnoreCase)
+            || ingredient.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase)
+            || ingredient.Category.Contains(searchString, StringComparison.OrdinalIgnoreCase)
+            || ingredient.Supplier.Contains(searchString, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private void HandleAdd()
+    {
+        // Add ingredient logic will be implemented later
+    }
+
+    private void HandleEdit(IngredientModel ingredient)
+    {
+        // Edit ingredient logic will be implemented later
+    }
+
+    private void HandleDelete(IngredientModel ingredient)
+    {
+        // Delete ingredient logic will be implemented later
+    }
+
+    public class IngredientModel
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string Category { get; set; } = string.Empty;
+        public string Unit { get; set; } = string.Empty;
+        public double CostPerUnit { get; set; }
+        public int MinimumQty { get; set; }
+        public int MaximumQty { get; set; }
+        public string Supplier { get; set; } = string.Empty;
+    }
+}

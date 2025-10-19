@@ -1,0 +1,199 @@
+﻿@page "/"
+@using MudBlazor
+
+<PageTitle>Inventory Dashboard</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4 px-2">
+    <MudText Typo="Typo.h4" Class="mb-4">Inventory Dashboard</MudText>
+
+    <MudGrid GutterSize="3">
+        @* Low Stock table *@
+        <MudItem xs="12" md="6">
+                <MudText Typo="Typo.h6" Class="mb-2 px-4 pt-4">Low Stock</MudText>
+
+                <MudTable Items="@lowStockList"
+                          Hover="true"
+                          Striped="true"
+                          Bordered="true"
+                          Dense="false"
+                          Filter="new Func<LowStockModel, bool>(LowStockFilter)"
+                          Class="dashboard-table">
+
+                    <ToolBarContent>
+                        <MudText Typo="Typo.subtitle1" Class="toolbar-title">Low Stock Items</MudText>
+                        <MudSpacer />
+                        <MudTextField @bind-Value="lowStockSearch"
+                                      Placeholder="Search"
+                                      Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Filled.Search"
+                                      IconSize="Size.Medium"
+                                      Immediate="true"
+                                      Class="mt-0 search-field" />
+                    </ToolBarContent>
+
+                    <HeaderContent>
+                        <MudTh>Item Name</MudTh>
+                        <MudTh>Branch Name</MudTh>
+                        <MudTh>Remaining Quantity</MudTh>
+                    </HeaderContent>
+
+                    <RowTemplate>
+                        <MudTd DataLabel="Item Name">@context.ItemName</MudTd>
+                        <MudTd DataLabel="Branch Name">@context.BranchName</MudTd>
+                        <MudTd DataLabel="Remaining Quantity">@context.RemainingQty</MudTd>
+                    </RowTemplate>
+
+                    <PagerContent>
+                        <MudTablePager PageSizeOptions="new int[] { 5, 10, 25, 50 }" />
+                    </PagerContent>
+                </MudTable>
+        </MudItem>
+
+        @* Overstock Table *@
+        <MudItem xs="12" md="6">
+                <MudText Typo="Typo.h6" Class="mb-2 px-4 pt-4">Overstock</MudText>
+
+                <MudTable Items="@overStockList"
+                          Hover="true"
+                          Striped="true"
+                          Bordered="true"
+                          Dense="false"
+                          Filter="new Func<OverStockModel, bool>(OverStockFilter)"
+                          Class="dashboard-table">
+
+                    <ToolBarContent>
+                        <MudText Typo="Typo.subtitle1" Class="toolbar-title">Overstock Items</MudText>
+                        <MudSpacer />
+                        <MudTextField @bind-Value="overStockSearch"
+                                      Placeholder="Search"
+                                      Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Filled.Search"
+                                      IconSize="Size.Medium"
+                                      Immediate="true"
+                                      Class="mt-0 search-field" />
+                    </ToolBarContent>
+
+                    <HeaderContent>
+                        <MudTh>Item Name</MudTh>
+                        <MudTh>Branch Name</MudTh>
+                        <MudTh>Excess Quantity</MudTh>
+                    </HeaderContent>
+
+                    <RowTemplate>
+                        <MudTd DataLabel="Item Name">@context.ItemName</MudTd>
+                        <MudTd DataLabel="Branch Name">@context.BranchName</MudTd>
+                        <MudTd DataLabel="Excess Quantity">+@context.ExcessQty</MudTd>
+                    </RowTemplate>
+
+                    <PagerContent>
+                        <MudTablePager PageSizeOptions="new int[] { 5, 10, 25, 50 }" />
+                    </PagerContent>
+                </MudTable>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+<style>
+    .dashboard-table .mud-table-cell {
+        vertical-align: middle !important;
+    }
+
+    @@media (max-width: 640.98px) {
+        .dashboard-table {
+            font-size: 0.875rem;
+        }
+
+        .mud-table-cell,
+        .mud-table-head-cell {
+            padding: 8px 4px !important;
+        }
+
+        .mud-paper {
+            margin-bottom: 1rem;
+        }
+
+        .toolbar-title {
+            font-size: 1rem !important;
+            white-space: nowrap;
+        }
+
+        .search-field {
+            max-width: 180px !important;
+        }
+    }
+
+    @@media (min-width: 641px) and (max-width: 960px) {
+        .dashboard-table {
+            font-size: 0.9rem;
+        }
+    }
+
+    @@media (min-width: 961px) and (max-width: 1280px) {
+        .dashboard-table {
+            font-size: 0.95rem;
+        }
+    }
+</style>
+
+@code {
+    private List<LowStockModel> lowStockList = new();
+    private List<OverStockModel> overStockList = new();
+    private string lowStockSearch = "";
+    private string overStockSearch = "";
+
+    protected override void OnInitialized()
+    {
+        // Example Low Stock data
+        lowStockList = new List<LowStockModel>
+        {
+            new LowStockModel { ItemName = "Salmon Fillet", BranchName = "Main Branch", RemainingQty = 8 },
+            new LowStockModel { ItemName = "Avocado", BranchName = "North Branch", RemainingQty = 5 },
+            new LowStockModel { ItemName = "Cucumber", BranchName = "West Branch", RemainingQty = 4 },
+            new LowStockModel { ItemName = "Wasabi Paste", BranchName = "East Branch", RemainingQty = 12 },
+            new LowStockModel { ItemName = "Seaweed Sheets (Nori)", BranchName = "South Branch", RemainingQty = 9 },
+            new LowStockModel { ItemName = "Seaweed Sheets (Nori)", BranchName = "South Branch", RemainingQty = 9 }
+        };
+
+        // Example Overstock data
+        overStockList = new List<OverStockModel>
+        {
+            new OverStockModel { ItemName = "Sushi Rice", BranchName = "Main Branch", ExcessQty = 120 },
+            new OverStockModel { ItemName = "Soy Sauce", BranchName = "Central Branch", ExcessQty = 60 },
+            new OverStockModel { ItemName = "Tempura Flour", BranchName = "North Branch", ExcessQty = 40 },
+            new OverStockModel { ItemName = "Ginger Pickle", BranchName = "East Branch", ExcessQty = 35 },
+            new OverStockModel { ItemName = "Tuna", BranchName = "South Branch", ExcessQty = 30 }
+        };
+    }
+
+    private bool LowStockFilter(LowStockModel item)
+    {
+        if (string.IsNullOrWhiteSpace(lowStockSearch))
+            return true;
+
+        return item.ItemName.Contains(lowStockSearch, StringComparison.OrdinalIgnoreCase)
+            || item.BranchName.Contains(lowStockSearch, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private bool OverStockFilter(OverStockModel item)
+    {
+        if (string.IsNullOrWhiteSpace(overStockSearch))
+            return true;
+
+        return item.ItemName.Contains(overStockSearch, StringComparison.OrdinalIgnoreCase)
+            || item.BranchName.Contains(overStockSearch, StringComparison.OrdinalIgnoreCase);
+    }
+
+    public class LowStockModel
+    {
+        public string ItemName { get; set; } = string.Empty;
+        public string BranchName { get; set; } = string.Empty;
+        public int RemainingQty { get; set; }
+    }
+
+    public class OverStockModel
+    {
+        public string ItemName { get; set; } = string.Empty;
+        public string BranchName { get; set; } = string.Empty;
+        public int ExcessQty { get; set; }
+    }
+}
