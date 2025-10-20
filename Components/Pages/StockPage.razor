@@ -51,12 +51,14 @@
                 <MudTh>Item Name</MudTh>
                 <MudTh>Branch Name</MudTh>
                 <MudTh>Quantity</MudTh>
+                <MudTh>Unit</MudTh>
             </HeaderContent>
 
             <RowTemplate>
                 <MudTd>@(context.Item?.ItemName ?? "N/A")</MudTd>
                 <MudTd>@(context.Branch?.BranchName ?? "N/A")</MudTd>
                 <MudTd>@context.Quantity</MudTd>
+                <MudTd>@GetItemUnit(context.ItemId)</MudTd>
             </RowTemplate>
         </MudTable>
     </MudPaper>
@@ -245,5 +247,12 @@
 
         var dialog = await DialogService.ShowAsync<DeductStockDialog>("Deduct Stock", parameters, options);
         await dialog.Result;
+    }
+
+    private string GetItemUnit(string? itemId)
+    {
+        var item = items.FirstOrDefault(i => i.ItemId == itemId);
+        if (item == null) return "N/A";
+        return item.Unit;
     }
 }

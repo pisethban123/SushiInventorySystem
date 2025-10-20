@@ -39,11 +39,13 @@
                         <MudTh>Item Name</MudTh>
                         <MudTh>Branch Name</MudTh>
                         <MudTh>Remaining Quantity</MudTh>
+                        <MudTh>Unit</MudTh>
                     </HeaderContent>
                     <RowTemplate>
                         <MudTd DataLabel="Item Name">@GetItemName(context.ItemId)</MudTd>
                         <MudTd DataLabel="Branch Name">@GetBranchName(context.BranchId)</MudTd>
                         <MudTd DataLabel="Remaining Quantity">@context.Quantity</MudTd>
+                        <MudTd DataLabel="Unit">@GetItemUnit(context.ItemId)</MudTd>
                     </RowTemplate>
                 </MudTable>
             </MudPaper>
@@ -72,11 +74,13 @@
                         <MudTh>Item Name</MudTh>
                         <MudTh>Branch Name</MudTh>
                         <MudTh>Excess Quantity</MudTh>
+                        <MudTh>Unit</MudTh>
                     </HeaderContent>
                     <RowTemplate>
                         <MudTd DataLabel="Item Name">@GetItemName(context.ItemId)</MudTd>
                         <MudTd DataLabel="Branch Name">@GetBranchName(context.BranchId)</MudTd>
                         <MudTd DataLabel="Excess Quantity">+@GetOverStockExcessiveQty(context.ItemId, context.Quantity)</MudTd>
+                        <MudTd DataLabel="Unit">@GetItemUnit(context.ItemId)</MudTd>
                     </RowTemplate>
                 </MudTable>
             </MudPaper>
@@ -247,5 +251,12 @@
             return "N/A";
         int excess = quantity.Value - item.MaxStock;
         return excess.ToString();
+    }
+
+    private string GetItemUnit(string? itemId)
+    {
+        var item = items.FirstOrDefault(i => i.ItemId == itemId);
+        if (item == null)   return "N/A";
+        return item.Unit;
     }
 }
