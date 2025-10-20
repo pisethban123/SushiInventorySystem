@@ -9,6 +9,7 @@
 @inject IStockService StockService
 @inject IBranchService BranchService
 @inject IServiceProvider ServiceProvider
+@inject ISnackbar Snackbar
 
 <PageTitle>Inventory Dashboard</PageTitle>
 
@@ -16,84 +17,70 @@
     <MudText Typo="Typo.h4" Class="mb-4">Inventory Dashboard</MudText>
 
     <MudGrid GutterSize="3">
-        @* ==============================
-           Low Stock Table
-           ============================== *@
+        <!-- ==============================
+             Low Stock Table
+             ============================== -->
         <MudItem xs="12" md="6">
             <MudText Typo="Typo.h6" Class="mb-2 px-4 pt-4">Low Stock</MudText>
 
-            <MudTable T="SushiInventorySystem.Models.Stock"
-                      Items="@LowStockFiltered"
-                      Hover="true" Striped="true" Bordered="true" Dense="false"
-                      Class="dashboard-table">
-
-                <ToolBarContent>
-                    <MudText Typo="Typo.subtitle1" Class="toolbar-title">Low Stock Items</MudText>
-                    <MudSpacer />
-                    <MudTextField @bind-Value="lowStockSearch"
-                                  @bind-Value:event="oninput"
-                                  Placeholder="Search"
-                                  Adornment="Adornment.Start"
-                                  AdornmentIcon="@Icons.Material.Filled.Search"
-                                  Immediate="true"
-                                  Class="mt-0 search-field" />
-                </ToolBarContent>
-
-                <HeaderContent>
-                    <MudTh>Item Name</MudTh>
-                    <MudTh>Branch Name</MudTh>
-                    <MudTh>Remaining Quantity</MudTh>
-                </HeaderContent>
-
-                <RowTemplate>
-                    <MudTd DataLabel="Item Name">@GetItemName(context.ItemId)</MudTd>
-                    <MudTd DataLabel="Branch Name">@GetBranchName(context.BranchId)</MudTd>
-                    <MudTd DataLabel="Remaining Quantity">@context.Quantity</MudTd>
-                </RowTemplate>
-            </MudTable>
+            <MudPaper Elevation="2" Class="table-container">
+                <MudTable T="Stock"
+                          Items="@lowStockList"
+                          Hover="true"
+                          Striped="true"
+                          Bordered="true"
+                          Dense="false"
+                          FixedHeader="true"
+                          Height="flex"
+                          Class="dashboard-table">
+                    <HeaderContent>
+                        <MudTh>Item Name</MudTh>
+                        <MudTh>Branch Name</MudTh>
+                        <MudTh>Remaining Quantity</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Item Name">@GetItemName(context.ItemId)</MudTd>
+                        <MudTd DataLabel="Branch Name">@GetBranchName(context.BranchId)</MudTd>
+                        <MudTd DataLabel="Remaining Quantity">@context.Quantity</MudTd>
+                    </RowTemplate>
+                </MudTable>
+            </MudPaper>
         </MudItem>
 
-        @* ==============================
-           Overstock Table
-           ============================== *@
+        <!-- ==============================
+             Overstock Table
+             ============================== -->
         <MudItem xs="12" md="6">
             <MudText Typo="Typo.h6" Class="mb-2 px-4 pt-4">Overstock</MudText>
 
-            <MudTable T="SushiInventorySystem.Models.Stock"
-                      Items="@OverStockFiltered"
-                      Hover="true" Striped="true" Bordered="true" Dense="false"
-                      Class="dashboard-table">
-
-                <ToolBarContent>
-                    <MudText Typo="Typo.subtitle1" Class="toolbar-title">Overstock Items</MudText>
-                    <MudSpacer />
-                    <MudTextField @bind-Value="overStockSearch"
-                                  @bind-Value:event="oninput"
-                                  Placeholder="Search"
-                                  Adornment="Adornment.Start"
-                                  AdornmentIcon="@Icons.Material.Filled.Search"
-                                  Immediate="true"
-                                  Class="mt-0 search-field" />
-                </ToolBarContent>
-
-                <HeaderContent>
-                    <MudTh>Item Name</MudTh>
-                    <MudTh>Branch Name</MudTh>
-                    <MudTh>Excess Quantity</MudTh>
-                </HeaderContent>
-
-                <RowTemplate>
-                    <MudTd DataLabel="Item Name">@GetItemName(context.ItemId)</MudTd>
-                    <MudTd DataLabel="Branch Name">@GetBranchName(context.BranchId)</MudTd>
-                    <MudTd DataLabel="Excess Quantity">@context.Quantity</MudTd>
-                </RowTemplate>
-            </MudTable>
+            <MudPaper Elevation="2" Class="table-container">
+                <MudTable T="Stock"
+                          Items="@overStockList"
+                          Hover="true"
+                          Striped="true"
+                          Bordered="true"
+                          Dense="false"
+                          FixedHeader="true"
+                          Height="flex"
+                          Class="dashboard-table">
+                    <HeaderContent>
+                        <MudTh>Item Name</MudTh>
+                        <MudTh>Branch Name</MudTh>
+                        <MudTh>Excess Quantity</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Item Name">@GetItemName(context.ItemId)</MudTd>
+                        <MudTd DataLabel="Branch Name">@GetBranchName(context.BranchId)</MudTd>
+                        <MudTd DataLabel="Excess Quantity">+@context.Quantity</MudTd>
+                    </RowTemplate>
+                </MudTable>
+            </MudPaper>
         </MudItem>
     </MudGrid>
 
-    @* ==============================
-       System Reports Section
-       ============================== *@
+    <!-- ==============================
+         System Reports Section
+         ============================== -->
     <MudDivider Class="my-4" />
     <MudText Typo="Typo.h5" Class="mb-2 px-4">
         <MudIcon Icon="@Icons.Material.Filled.InsertChart" Class="mr-2" />System Reports
@@ -117,63 +104,134 @@
     </MudPaper>
 </MudContainer>
 
-@code {
-    // 🔹 검색용 필드
-    private string lowStockSearch = "";
-    private string overStockSearch = "";
-
-    // 🔹 로드된 데이터 (모델 명시적)
-    private List<SushiInventorySystem.Models.Item> items = new();
-    private List<SushiInventorySystem.Models.Branch> branches = new();
-    private List<SushiInventorySystem.Models.Stock> lowStockList = new();
-    private List<SushiInventorySystem.Models.Stock> overStockList = new();
-    private List<IReport>? reports;
-
-    // 🔹 페이지 초기화
-    protected override async Task OnInitializedAsync()
-    {
-        items = (await ItemService.GetAllAsync()).ToList();
-        branches = (await BranchService.GetAllAsync()).ToList();
-        lowStockList = (await StockService.GetLowStockItemsAsync()).ToList();
-        overStockList = (await StockService.GetOverstockItemsAsync()).ToList();
-
-        using var scope = ServiceProvider.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-        reports = new List<IReport>
-        {
-            new StockReport(context),
-            new BranchReport(context)
-        };
+<style>
+    .table-container {
+        overflow: hidden;
     }
 
-    // 🔹 ID → 이름 매핑 함수
+    .dashboard-table .mud-table-cell {
+        vertical-align: middle !important;
+    }
+
+    .dashboard-table .mud-table-container {
+        overflow-y: auto;
+        scroll-behavior: smooth;
+        max-height: 400px;
+    }
+
+    .dashboard-table .mud-table-head {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        background-color: var(--mud-palette-surface);
+    }
+
+    @@media (max-width: 640.98px) {
+        .dashboard-table {
+            font-size: 0.875rem;
+        }
+
+        .mud-table-cell,
+        .mud-table-head-cell {
+            padding: 8px 4px !important;
+        }
+
+        .mud-container {
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+        }
+
+        .dashboard-table {
+            height: calc(100vh - 280px) !important;
+        }
+    }
+
+    @@media (min-width: 641px) and (max-width: 960px) {
+        .dashboard-table {
+            font-size: 0.9rem;
+        }
+    }
+
+    @@media (min-width: 961px) and (max-width: 1280px) {
+        .dashboard-table {
+            font-size: 0.95rem;
+        }
+    }
+
+    @@media (min-width: 641px) {
+        .dashboard-table {
+            overflow-x: auto;
+        }
+
+        .mud-container {
+            max-width: 100%;
+        }
+    }
+
+    .dashboard-table .mud-table-container::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    .dashboard-table .mud-table-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+
+    .dashboard-table .mud-table-container::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 4px;
+    }
+
+        .dashboard-table .mud-table-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+</style>
+
+@code {
+    private List<Item> items = new();
+    private List<Branch> branches = new();
+    private List<Stock> lowStockList = new();
+    private List<Stock> overStockList = new();
+    private List<IReport>? reports;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDashboardData();
+    }
+
+    private async Task LoadDashboardData()
+    {
+        try
+        {
+            items = (await ItemService.GetAllAsync()).ToList();
+            branches = (await BranchService.GetAllAsync()).ToList();
+            lowStockList = (await StockService.GetLowStockItemsAsync()).ToList();
+            overStockList = (await StockService.GetOverstockItemsAsync()).ToList();
+
+            using var scope = ServiceProvider.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            reports = new List<IReport>
+            {
+                new StockReport(context),
+                new BranchReport(context)
+            };
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading dashboard data: {ex.Message}", Severity.Error);
+            Console.WriteLine($"[Dashboard] Error loading data: {ex}");
+        }
+    }
+
     private string GetItemName(string? itemId)
     {
-        var item = items?.FirstOrDefault(i => i.ItemId == itemId);
-        return item?.ItemName ?? itemId ?? "";
+        var item = items.FirstOrDefault(i => i.ItemId == itemId);
+        return item?.ItemName ?? "Unknown";
     }
 
     private string GetBranchName(string? branchId)
     {
-        var branch = branches?.FirstOrDefault(b => b.BranchId == branchId);
-        return branch?.BranchName ?? branchId ?? "";
+        var branch = branches.FirstOrDefault(b => b.BranchId == branchId);
+        return branch?.BranchName ?? "Unknown";
     }
-
-    // 🔹 필터링된 결과 리스트
-private IEnumerable<SushiInventorySystem.Models.Stock> LowStockFiltered =>
-    string.IsNullOrWhiteSpace(lowStockSearch)
-        ? lowStockList
-        : lowStockList.Where(s =>
-            (s.Item?.ItemName?.Contains(lowStockSearch, StringComparison.OrdinalIgnoreCase) ?? false) ||
-            (s.Branch?.BranchName?.Contains(lowStockSearch, StringComparison.OrdinalIgnoreCase) ?? false));
-
-
-
-    private IEnumerable<SushiInventorySystem.Models.Stock> OverStockFiltered =>
-        string.IsNullOrWhiteSpace(overStockSearch)
-            ? overStockList
-            : overStockList.Where(s =>
-                GetItemName(s.ItemId).Contains(overStockSearch, StringComparison.OrdinalIgnoreCase) ||
-                GetBranchName(s.BranchId).Contains(overStockSearch, StringComparison.OrdinalIgnoreCase));
 }

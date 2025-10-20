@@ -1,0 +1,186 @@
+﻿@page "/transfer"
+@using MudBlazor
+@using SushiInventorySystem.Data;
+@using SushiInventorySystem.Models;
+@using SushiInventorySystem.Services.Interfaces;
+@inject IStockService StockService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<PageTitle>Transfer Management</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4 px-2">
+    <MudText Typo="Typo.h4" Class="mb-4">Transfer Management</MudText>
+
+    @* Transfer Button *@
+    <MudStack Row="true" Class="mb-4">
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.SwapHoriz"
+                   OnClick="HandleTransfer">
+            Transfer Item
+        </MudButton>
+    </MudStack>
+
+    @* Transfer History Table *@
+    <MudPaper Elevation="2" Class="table-container">
+        <MudTable Items="@transfers"
+                  Hover="true"
+                  Striped="true"
+                  Bordered="true"
+                  Dense="false"
+                  FixedHeader="true"
+                  Height="flex"
+                  Class="transfer-table">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Transfer History</MudText>
+                <MudSpacer />
+                <MudText Typo="Typo.body2" Class="mr-2">Total: @transfers.Count transfers</MudText>
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh>Transfer ID</MudTh>
+                <MudTh>Item ID</MudTh>
+                <MudTh>Item Name</MudTh>
+                <MudTh Class="quantity-column">Quantity</MudTh>
+                <MudTh Class="unit-column">Unit</MudTh>
+                <MudTh Class="from-column">From Branch</MudTh>
+                <MudTh Class="to-column">To Branch</MudTh>
+                <MudTh Class="date-column">Transfer Date</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Transfer ID">@context.TransferId</MudTd>
+                <MudTd DataLabel="Item ID">@context.ItemId</MudTd>
+                <MudTd DataLabel="Item Name">@(context.Item?.ItemName ?? "N/A")</MudTd>
+                <MudTd DataLabel="Quantity" Class="quantity-column">@context.Quantity</MudTd>
+                <MudTd DataLabel="Unit" Class="unit-column">@context.Unit</MudTd>
+                <MudTd DataLabel="From Branch" Class="from-column">@(context.From?.BranchName ?? "N/A")</MudTd>
+                <MudTd DataLabel="To Branch" Class="to-column">@(context.To?.BranchName ?? "N/A")</MudTd>
+                <MudTd DataLabel="Transfer Date" Class="date-column">@context.TransferDate.ToString("yyyy-MM-dd HH:mm")</MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudPaper>
+</MudContainer>
+
+<style>
+    .table-container {
+        overflow: hidden;
+    }
+
+    /* Ensure all cells have consistent vertical alignment */
+    .transfer-table .mud-table-cell {
+        vertical-align: middle !important;
+    }
+
+    /* Smooth scrolling */
+    .transfer-table .mud-table-container {
+        overflow-y: auto;
+        scroll-behavior: smooth;
+    }
+
+    /* Mobile - matches NavMenu breakpoint (up to 640px) */
+    @@media (max-width: 640.98px) {
+        .transfer-table {
+            font-size: 0.875rem;
+        }
+
+        .quantity-column,
+        .unit-column,
+        .date-column {
+            display: none !important;
+        }
+
+        .mud-table-cell,
+        .mud-table-head-cell {
+            padding: 8px 4px !important;
+        }
+        /* Adjust container padding on mobile to match main layout */
+        .mud-container {
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+        }
+        /* Adjust table height for mobile */
+        .transfer-table {
+            height: calc(100vh - 280px) !important;
+        }
+    }
+
+    /* Tablet (641px to 960px) - matches NavMenu desktop breakpoint */
+    @@media (min-width: 641px) and (max-width: 960px) {
+        .unit-column,
+        .date-column {
+            display: none !important;
+        }
+
+        .transfer-table {
+            font-size: 0.9rem;
+        }
+    }
+
+    /* Medium screens (961px to 1280px) */
+    @@media (min-width: 961px) and (max-width: 1280px) {
+        .transfer-table {
+            font-size: 0.95rem;
+        }
+    }
+
+    /* Desktop - matches NavMenu desktop (min-width: 641px) */
+    @@media (min-width: 641px) {
+        .transfer-table {
+            overflow-x: auto;
+        }
+    }
+
+    /* Ensure proper spacing when sidebar is visible */
+    @@media (min-width: 641px) {
+        .mud-container {
+            max-width: 100%;
+        }
+    }
+
+    /* Custom scrollbar styling */
+    .transfer-table .mud-table-container::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    .transfer-table .mud-table-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+
+    .transfer-table .mud-table-container::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 4px;
+    }
+
+        .transfer-table .mud-table-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+</style>
+
+@code {
+    private List<Transfer> transfers = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTransfers();
+    }
+
+    private async Task LoadTransfers()
+    {
+        try
+        {
+            var result = await StockService.GetTransferHistoryAsync();
+            transfers = result.ToList();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading transfers: {ex.Message}", Severity.Error);
+            Console.WriteLine($"Error fetching transfers: {ex.Message}");
+        }
+    }
+
+    private async Task HandleTransfer()
+    {
+        // Transfer logic will be implemented later
+    }
+}

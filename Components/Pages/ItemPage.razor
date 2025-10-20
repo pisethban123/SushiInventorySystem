@@ -1,16 +1,16 @@
-﻿@page "/branch"
+﻿@page "/item"
 @using MudBlazor
 @using SushiInventorySystem.Data;
 @using SushiInventorySystem.Models;
 @using SushiInventorySystem.Services.Interfaces;
-@inject IBranchService BranchService
+@inject IItemService ItemService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
-<PageTitle>Branch Management</PageTitle>
+<PageTitle>Item Management</PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4 px-2">
-    <MudText Typo="Typo.h4" Class="mb-4">Branch Management</MudText>
+    <MudText Typo="Typo.h4" Class="mb-4">Item Management</MudText>
 
     @* Add Button *@
     <MudStack Row="true" Class="mb-4">
@@ -22,35 +22,41 @@
         </MudButton>
     </MudStack>
 
-    @* Branch Table *@
+    @* Item Table *@
     <MudPaper Elevation="2" Class="table-container">
-        <MudTable Items="@branches"
+        <MudTable Items="@items"
                   Hover="true"
                   Striped="true"
                   Bordered="true"
                   Dense="false"
                   FixedHeader="true"
                   Height="flex"
-                  Class="branch-table">
+                  Class="item-table">
             <ToolBarContent>
-                <MudText Typo="Typo.h6">Branch List</MudText>
+                <MudText Typo="Typo.h6">Item List</MudText>
                 <MudSpacer />
-                <MudText Typo="Typo.body2" Class="mr-2">Total: @branches.Count branches</MudText>
+                <MudText Typo="Typo.body2" Class="mr-2">Total: @items.Count items</MudText>
             </ToolBarContent>
             <HeaderContent>
-                <MudTh>Branch ID</MudTh>
-                <MudTh>Branch Name</MudTh>
-                <MudTh Class="address-column">Address</MudTh>
-                <MudTh Class="postcode-column">Postcode</MudTh>
-                <MudTh Class="contact-column">Phone</MudTh>
+                <MudTh>Item ID</MudTh>
+                <MudTh>Item Name</MudTh>
+                <MudTh Class="category-column">Category</MudTh>
+                <MudTh Class="unit-column">Unit</MudTh>
+                <MudTh Class="supplier-column">Supplier</MudTh>
+                <MudTh Class="cost-column">Cost per Unit ($)</MudTh>
+                <MudTh Class="min-column">Min Stock</MudTh>
+                <MudTh Class="max-column">Max Stock</MudTh>
                 <MudTh Style="text-align: center;">Actions</MudTh>
             </HeaderContent>
             <RowTemplate>
-                <MudTd DataLabel="Branch ID">@context.BranchId</MudTd>
-                <MudTd DataLabel="Branch Name">@context.BranchName</MudTd>
-                <MudTd DataLabel="Address" Class="address-column">@context.Address</MudTd>
-                <MudTd DataLabel="Postcode" Class="postcode-column">@context.Postcode</MudTd>
-                <MudTd DataLabel="Contact" Class="contact-column">@context.Phone</MudTd>
+                <MudTd DataLabel="Item ID">@context.ItemId</MudTd>
+                <MudTd DataLabel="Item Name">@context.ItemName</MudTd>
+                <MudTd DataLabel="Category" Class="category-column">@context.Category</MudTd>
+                <MudTd DataLabel="Unit" Class="unit-column">@context.Unit</MudTd>
+                <MudTd DataLabel="Supplier" Class="supplier-column">@context.Supplier</MudTd>
+                <MudTd DataLabel="Cost ($)" Class="cost-column">@context.CostPerUnit.ToString("0.00")</MudTd>
+                <MudTd DataLabel="Min Stock" Class="min-column">@context.MinStock</MudTd>
+                <MudTd DataLabel="Max Stock" Class="max-column">@context.MaxStock</MudTd>
                 <MudTd DataLabel="Actions" Style="text-align: center;">
                     <MudIconButton Size="Size.Small"
                                    Icon="@Icons.Material.Outlined.Edit"
@@ -74,27 +80,25 @@
     }
 
     /* Ensure all cells have consistent vertical alignment */
-    .branch-table .mud-table-cell {
+    .item-table .mud-table-cell {
         vertical-align: middle !important;
     }
 
     /* Smooth scrolling */
-    .branch-table .mud-table-container {
+    .item-table .mud-table-container {
         overflow-y: auto;
         scroll-behavior: smooth;
     }
 
     /* Mobile - matches NavMenu breakpoint (up to 640px) */
     @@media (max-width: 640.98px) {
-        .branch-table {
+        .item-table {
             font-size: 0.875rem;
         }
 
-        .address-column {
-            display: none !important;
-        }
-
-        .contact-column {
+        .category-column,
+        .description-column,
+        .cost-column {
             display: none !important;
         }
 
@@ -108,32 +112,32 @@
             padding-right: 1rem !important;
         }
         /* Adjust table height for mobile */
-        .branch-table {
+        .item-table {
             height: calc(100vh - 280px) !important;
         }
     }
 
     /* Tablet (641px to 960px) - matches NavMenu desktop breakpoint */
     @@media (min-width: 641px) and (max-width: 960px) {
-        .postcode-column {
+        .description-column {
             display: none !important;
         }
 
-        .branch-table {
+        .item-table {
             font-size: 0.9rem;
         }
     }
 
     /* Medium screens (961px to 1280px) */
     @@media (min-width: 961px) and (max-width: 1280px) {
-        .branch-table {
+        .item-table {
             font-size: 0.95rem;
         }
     }
 
     /* Desktop - matches NavMenu desktop (min-width: 641px) */
     @@media (min-width: 641px) {
-        .branch-table {
+        .item-table {
             overflow-x: auto;
         }
     }
@@ -146,44 +150,44 @@
     }
 
     /* Custom scrollbar styling */
-    .branch-table .mud-table-container::-webkit-scrollbar {
+    .item-table .mud-table-container::-webkit-scrollbar {
         width: 8px;
         height: 8px;
     }
 
-    .branch-table .mud-table-container::-webkit-scrollbar-track {
+    .item-table .mud-table-container::-webkit-scrollbar-track {
         background: #f1f1f1;
     }
 
-    .branch-table .mud-table-container::-webkit-scrollbar-thumb {
+    .item-table .mud-table-container::-webkit-scrollbar-thumb {
         background: #888;
         border-radius: 4px;
     }
 
-        .branch-table .mud-table-container::-webkit-scrollbar-thumb:hover {
+        .item-table .mud-table-container::-webkit-scrollbar-thumb:hover {
             background: #555;
         }
 </style>
 
 @code {
-    private List<Branch> branches = new();
+    private List<Item> items = new();
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadBranches();
+        await LoadItems();
     }
 
-    private async Task LoadBranches()
+    private async Task LoadItems()
     {
         try
         {
-            var result = await BranchService.GetAllAsync();
-            branches = result.ToList();
+            var result = await ItemService.GetAllAsync();
+            items = result.ToList();
         }
         catch (Exception ex)
         {
-            Snackbar.Add($"Error loading branches: {ex.Message}", Severity.Error);
-            Console.WriteLine($"Error fetching branches: {ex.Message}");
+            Snackbar.Add($"Error loading items: {ex.Message}", Severity.Error);
+            Console.WriteLine($"Error fetching items: {ex.Message}");
         }
     }
 
@@ -192,12 +196,12 @@
         // Add logic will be implemented later
     }
 
-    private void HandleEdit(Branch branch)
+    private void HandleEdit(Item item)
     {
         // Edit logic will be implemented later
     }
 
-    private void HandleDelete(Branch branch)
+    private void HandleDelete(Item item)
     {
         // Delete logic will be implemented later
     }
