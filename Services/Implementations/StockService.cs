@@ -79,7 +79,7 @@ namespace SushiInventorySystem.Services.Implementations
 
             try
             {
-                // 1️⃣ Validate stock first
+                // 1️. Validate stock first
                 var fromStock = await _context.Stocks
                     .AsNoTracking()
                     .FirstOrDefaultAsync(s => s.ItemId == itemId && s.BranchId == fromBranch);
@@ -90,11 +90,11 @@ namespace SushiInventorySystem.Services.Implementations
                         $"Insufficient stock in '{fromBranch}'. Available: {fromStock?.Quantity ?? 0}, Tried: {quantity}");
                 }
 
-                // 2️⃣ Perform stock operations
+                // 2️. Perform stock operations
                 await StockOutAsync(itemId, fromBranch, quantity);
                 await StockInAsync(itemId, toBranch, quantity);
 
-                // 3️⃣ Generate next TransferId (T0001, T0002...)
+                // 3️. Generate next TransferId (T0001, T0002...)
                 var lastTransfer = await _context.Transfers
                     .AsNoTracking()
                     .OrderByDescending(t => t.TransferId)
@@ -121,12 +121,12 @@ namespace SushiInventorySystem.Services.Implementations
                 _context.Transfers.Add(transfer);
                 await _context.SaveChangesAsync();
 
-                // 4️⃣ Commit transaction only if everything succeeded
+                // 4️. Commit transaction only if everything succeeded
                 await transaction.CommitAsync();
             }
             catch
             {
-                // ❌ Rollback on any error to maintain data consistency
+                // Rollback on any error to maintain data consistency
                 await transaction.RollbackAsync();
                 throw;
             }

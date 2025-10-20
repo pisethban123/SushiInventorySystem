@@ -66,26 +66,4 @@ using (var scope = app.Services.CreateScope())
     SeedData.Initialize(context);
 }
 
-// ==========================
-//  5️. Optional: Test logic during development
-// ==========================
-// You can remove this block after verifying backend integration.
-if (app.Environment.IsDevelopment())
-{
-    using (var scope = app.Services.CreateScope())
-    {
-        var itemService = scope.ServiceProvider.GetRequiredService<IItemService>();
-
-        Console.WriteLine("\n=== Search for 'Sushi' ===");
-        var searchResults = await itemService.SearchItemsAsync("Sushi");
-        foreach (var i in searchResults)
-            Console.WriteLine($"{i.ItemName} ({i.Category}) - ${i.CostPerUnit}");
-
-        Console.WriteLine("\n=== Average cost per category ===");
-        var avg = await itemService.GetAverageCostByCategoryAsync();
-        foreach (var kv in avg)
-            Console.WriteLine($"{kv.Key}: ${kv.Value:F2}");
-    }
-}
-
 app.Run();

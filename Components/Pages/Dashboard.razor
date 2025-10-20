@@ -76,7 +76,7 @@
                     <RowTemplate>
                         <MudTd DataLabel="Item Name">@GetItemName(context.ItemId)</MudTd>
                         <MudTd DataLabel="Branch Name">@GetBranchName(context.BranchId)</MudTd>
-                        <MudTd DataLabel="Excess Quantity">+@context.Quantity</MudTd>
+                        <MudTd DataLabel="Excess Quantity">+@GetOverStockExcessiveQty(context.ItemId, context.Quantity)</MudTd>
                     </RowTemplate>
                 </MudTable>
             </MudPaper>
@@ -238,5 +238,14 @@
     {
         var branch = branches.FirstOrDefault(b => b.BranchId == branchId);
         return branch?.BranchName ?? "Unknown";
+    }
+
+    private string GetOverStockExcessiveQty(string? itemId, int? quantity)
+    {
+        var item = items.FirstOrDefault(i => i.ItemId == itemId);
+        if (item == null || !quantity.HasValue)
+            return "N/A";
+        int excess = quantity.Value - item.MaxStock;
+        return excess.ToString();
     }
 }

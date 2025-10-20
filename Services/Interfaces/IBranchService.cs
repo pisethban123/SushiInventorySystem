@@ -12,7 +12,7 @@ namespace SushiInventorySystem.Services.Interfaces
         Task UpdateAsync(Branch branch);
         Task DeleteAsync(string id);
 
-        // 🔹 (Validation + Anonymous method)
+        // (Validation + Anonymous method)
         Task<bool> ValidateBranchDataAsync(string branchId);
     }
 }

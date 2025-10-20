@@ -32,7 +32,7 @@ namespace SushiInventorySystem.Data
                 context.Transfers.AddRange(transfers);
 
             context.SaveChanges();
-            Console.WriteLine("✅ Seed data successfully loaded into DB.");
+            Console.WriteLine("Seed data successfully loaded into DB.");
         }
 
         // ===== Entity Loaders =====

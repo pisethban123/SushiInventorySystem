@@ -12,7 +12,7 @@ namespace SushiInventorySystem.Models
 
         public StockReport(AppDbContext context)
         {
-            // ✅ 필요한 데이터 미리 로드
+            // Pre-load necessary data
             _stocks = context.Stocks
                 .Where(s => s.Item != null)
                 .ToList();
@@ -20,12 +20,7 @@ namespace SushiInventorySystem.Models
 
         public string GenerateSummary()
         {
-            foreach (var s in _stocks)
-            {
-                Console.WriteLine($"{s.Item?.ItemName} - Qty: {s.Quantity}, Min: {s.Item?.MinStock}");
-            }
-
-            // ✅ 메모리 내 데이터에서 통계 계산
+            // Calculate in-memony data
             var totalStocks = _stocks.Count;
             var lowStocks = _stocks.Count(s => s.Item != null && s.Quantity < s.Item.MinStock);
 

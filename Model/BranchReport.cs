@@ -14,7 +14,7 @@ namespace SushiInventorySystem.Models
 
         public BranchReport(AppDbContext context)
         {
-            // ✅ 데이터 즉시 메모리에 로드
+            // Load data to the memory
             _branchCount = context.Branches.Count();
 
             _stocks = context.Stocks
@@ -26,7 +26,7 @@ namespace SushiInventorySystem.Models
 
         public string GenerateSummary()
         {
-            // ✅ 메모리 내 데이터로 계산
+            // Calculate data in memory
             var avgStockByBranch = _stocks
                 .GroupBy(s => s.Branch!.BranchName)
                 .Select(g => new
