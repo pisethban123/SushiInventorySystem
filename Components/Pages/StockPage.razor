@@ -1,9 +1,11 @@
 ﻿@page "/stock"
+@rendermode InteractiveServer
 @using MudBlazor
-@using SushiInventorySystem.Data;
-@using SushiInventorySystem.Models;
-@using SushiInventorySystem.Services.Interfaces;
+@using SushiInventorySystem.Models
+@using SushiInventorySystem.Services.Interfaces
 @inject IStockService StockService
+@inject IItemService ItemService
+@inject IBranchService BranchService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
@@ -12,7 +14,7 @@
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4 px-2">
     <MudText Typo="Typo.h4" Class="mb-4">Stock Management</MudText>
 
-    @* Add & Deduct Buttons *@
+    <!-- Add & Deduct Buttons -->
     <MudStack Row="true" Spacing="2" Class="mb-4">
         <MudButton Variant="Variant.Filled"
                    Color="Color.Primary"
@@ -20,6 +22,7 @@
                    OnClick="HandleAddStock">
             Add Stock
         </MudButton>
+
         <MudButton Variant="Variant.Filled"
                    Color="Color.Error"
                    StartIcon="@Icons.Material.Filled.Remove"
@@ -28,7 +31,7 @@
         </MudButton>
     </MudStack>
 
-    @* Stock Table *@
+    <!-- Stock Table -->
     <MudPaper Elevation="2" Class="table-container">
         <MudTable Items="@stocks"
                   Hover="true"
@@ -43,19 +46,17 @@
                 <MudSpacer />
                 <MudText Typo="Typo.body2" Class="mr-2">Total: @stocks.Count stocks</MudText>
             </ToolBarContent>
+
             <HeaderContent>
-                <MudTh>Item ID</MudTh>
                 <MudTh>Item Name</MudTh>
-                <MudTh Class="branch-column">Branch ID</MudTh>
-                <MudTh Class="branch-name-column">Branch Name</MudTh>
+                <MudTh>Branch Name</MudTh>
                 <MudTh>Quantity</MudTh>
             </HeaderContent>
+
             <RowTemplate>
-                <MudTd DataLabel="Item ID">@context.ItemId</MudTd>
-                <MudTd DataLabel="Item Name">@(context.Item?.ItemName ?? "N/A")</MudTd>
-                <MudTd DataLabel="Branch ID" Class="branch-column">@context.BranchId</MudTd>
-                <MudTd DataLabel="Branch Name" Class="branch-name-column">@(context.Branch?.BranchName ?? "N/A")</MudTd>
-                <MudTd DataLabel="Quantity">@context.Quantity</MudTd>
+                <MudTd>@(context.Item?.ItemName ?? "N/A")</MudTd>
+                <MudTd>@(context.Branch?.BranchName ?? "N/A")</MudTd>
+                <MudTd>@context.Quantity</MudTd>
             </RowTemplate>
         </MudTable>
     </MudPaper>
@@ -66,41 +67,41 @@
         overflow: hidden;
     }
 
-    /* Ensure all cells have consistent vertical alignment */
-    .stock-table .mud-table-cell {
-        vertical-align: middle !important;
-    }
-
-    /* Smooth scrolling */
-    .stock-table .mud-table-container {
-        overflow-y: auto;
-        scroll-behavior: smooth;
-    }
-
-    /* Make MudTable header sticky on scroll */
-    .stock-table {
+    /* Table height + scrolling (matches Stock page) */
+    .item-table {
         display: block;
         max-height: 80vh;
         overflow-y: auto;
     }
 
-    /* Ensures header sticks and remains visible */
-    .stock-table .mud-table-head {
-        position: sticky;
-        top: 0;
-        z-index: 2;
-        background-color: var(--mud-palette-surface);
-    }
+        /* Sticky header */
+        .item-table .mud-table-head {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background-color: var(--mud-palette-surface);
+        }
 
+        /* Align content middle */
+        .item-table .mud-table-cell {
+            vertical-align: middle !important;
+        }
 
-    /* Mobile - matches NavMenu breakpoint (up to 640px) */
+        /* Scroll behavior */
+        .item-table .mud-table-container {
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+    /* Mobile - up to 640px */
     @@media (max-width: 640.98px) {
-        .stock-table {
+        .item-table {
             font-size: 0.875rem;
         }
 
-        .branch-column,
-        .branch-name-column {
+        .category-column,
+        .supplier-column,
+        .cost-column {
             display: none !important;
         }
 
@@ -108,75 +109,75 @@
         .mud-table-head-cell {
             padding: 8px 4px !important;
         }
-        /* Adjust container padding on mobile to match main layout */
+
         .mud-container {
             padding-left: 1rem !important;
             padding-right: 1rem !important;
         }
-        /* Adjust table height for mobile */
-        .stock-table {
+
+        .item-table {
             height: calc(100vh - 280px) !important;
         }
     }
 
-    /* Tablet (641px to 960px) - matches NavMenu desktop breakpoint */
+    /* Tablet (641px–960px) */
     @@media (min-width: 641px) and (max-width: 960px) {
-        .branch-column {
+        .supplier-column {
             display: none !important;
         }
 
-        .stock-table {
+        .item-table {
             font-size: 0.9rem;
         }
     }
 
-    /* Medium screens (961px to 1280px) */
+    /* Medium (961px–1280px) */
     @@media (min-width: 961px) and (max-width: 1280px) {
-        .stock-table {
+        .item-table {
             font-size: 0.95rem;
         }
     }
 
-    /* Desktop - matches NavMenu desktop (min-width: 641px) */
+    /* Desktop (≥641px) */
     @@media (min-width: 641px) {
-        .stock-table {
+        .item-table {
             overflow-x: auto;
         }
-    }
 
-    /* Ensure proper spacing when sidebar is visible */
-    @@media (min-width: 641px) {
         .mud-container {
             max-width: 100%;
         }
     }
 
-    /* Custom scrollbar styling */
-    .stock-table .mud-table-container::-webkit-scrollbar {
+    /* Scrollbar style */
+    .item-table .mud-table-container::-webkit-scrollbar {
         width: 8px;
         height: 8px;
     }
 
-    .stock-table .mud-table-container::-webkit-scrollbar-track {
+    .item-table .mud-table-container::-webkit-scrollbar-track {
         background: #f1f1f1;
     }
 
-    .stock-table .mud-table-container::-webkit-scrollbar-thumb {
+    .item-table .mud-table-container::-webkit-scrollbar-thumb {
         background: #888;
         border-radius: 4px;
     }
 
-        .stock-table .mud-table-container::-webkit-scrollbar-thumb:hover {
+        .item-table .mud-table-container::-webkit-scrollbar-thumb:hover {
             background: #555;
         }
 </style>
 
 @code {
     private List<Stock> stocks = new();
+    private List<Item> items = new();
+    private List<Branch> branches = new();
 
     protected override async Task OnInitializedAsync()
     {
         await LoadStocks();
+        await LoadDropdowns();
     }
 
     private async Task LoadStocks()
@@ -189,17 +190,60 @@
         catch (Exception ex)
         {
             Snackbar.Add($"Error loading stocks: {ex.Message}", Severity.Error);
-            Console.WriteLine($"Error fetching stocks: {ex.Message}");
         }
+    }
+
+    private async Task LoadDropdowns()
+    {
+        items = (await ItemService.GetAllAsync()).ToList();
+        branches = (await BranchService.GetAllAsync()).ToList();
     }
 
     private async Task HandleAddStock()
     {
-        // Add logic will be implemented later
+        var parameters = new DialogParameters
+        {
+            ["Items"] = items,
+            ["Branches"] = branches,
+            ["OnSave"] = EventCallback.Factory.Create<bool>(this, async (success) =>
+            {
+                if (success)
+                    await LoadStocks();
+            })
+        };
+
+        var options = new DialogOptions
+        {
+            CloseButton = true,
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true
+        };
+
+        var dialog = await DialogService.ShowAsync<AddStockDialog>("Add Stock", parameters, options);
+        await dialog.Result;
     }
 
     private async Task HandleDeductStock()
     {
-        // Deduct logic will be implemented later
+        var parameters = new DialogParameters
+        {
+            ["Items"] = items,
+            ["Branches"] = branches,
+            ["OnSave"] = EventCallback.Factory.Create<bool>(this, async (success) =>
+            {
+                if (success)
+                    await LoadStocks();
+            })
+        };
+
+        var options = new DialogOptions
+        {
+            CloseButton = true,
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true
+        };
+
+        var dialog = await DialogService.ShowAsync<DeductStockDialog>("Deduct Stock", parameters, options);
+        await dialog.Result;
     }
 }

@@ -1,5 +1,4 @@
 ﻿@page "/"
-
 @using SushiInventorySystem.Models
 @using SushiInventorySystem.Services.Interfaces
 @using SushiInventorySystem.Data
@@ -21,8 +20,6 @@
              Low Stock Table
              ============================== -->
         <MudItem xs="12" md="6">
-            <MudText Typo="Typo.h6" Class="mb-2 px-4 pt-4">Low Stock</MudText>
-
             <MudPaper Elevation="2" Class="table-container">
                 <MudTable T="Stock"
                           Items="@lowStockList"
@@ -33,6 +30,11 @@
                           FixedHeader="true"
                           Height="flex"
                           Class="dashboard-table">
+                    <ToolBarContent>
+                        <MudText Typo="Typo.h6">Low Stock List</MudText>
+                        <MudSpacer />
+                        <MudText Typo="Typo.body2" Class="mr-2">Total: @lowStockList.Count items</MudText>
+                    </ToolBarContent>
                     <HeaderContent>
                         <MudTh>Item Name</MudTh>
                         <MudTh>Branch Name</MudTh>
@@ -51,8 +53,6 @@
              Overstock Table
              ============================== -->
         <MudItem xs="12" md="6">
-            <MudText Typo="Typo.h6" Class="mb-2 px-4 pt-4">Overstock</MudText>
-
             <MudPaper Elevation="2" Class="table-container">
                 <MudTable T="Stock"
                           Items="@overStockList"
@@ -63,6 +63,11 @@
                           FixedHeader="true"
                           Height="flex"
                           Class="dashboard-table">
+                    <ToolBarContent>
+                        <MudText Typo="Typo.h6">Overstock List</MudText>
+                        <MudSpacer />
+                        <MudText Typo="Typo.body2" Class="mr-2">Total: @overStockList.Count items</MudText>
+                    </ToolBarContent>
                     <HeaderContent>
                         <MudTh>Item Name</MudTh>
                         <MudTh>Branch Name</MudTh>
@@ -189,7 +194,7 @@
 
 @code {
     private List<Item> items = new();
-    private List<Branch> branches = new();
+    private List<SushiInventorySystem.Models.Branch> branches = new();
     private List<Stock> lowStockList = new();
     private List<Stock> overStockList = new();
     private List<IReport>? reports;

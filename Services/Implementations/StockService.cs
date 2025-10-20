@@ -74,22 +74,62 @@ namespace SushiInventorySystem.Services.Implementations
 
         public async Task TransferAsync(string itemId, string fromBranch, string toBranch, int quantity, string unit)
         {
-            await StockOutAsync(itemId, fromBranch, quantity);
-            await StockInAsync(itemId, toBranch, quantity);
+            // Start a transaction for full atomicity
+            using var transaction = await _context.Database.BeginTransactionAsync();
 
-            var transfer = new Transfer
+            try
             {
-                TransferId = Guid.NewGuid().ToString(),
-                ItemId = itemId,
-                Quantity = quantity,
-                Unit = unit,
-                FromBranch = fromBranch,
-                ToBranch = toBranch,
-                TransferDate = DateTime.Now
-            };
+                // 1️⃣ Validate stock first
+                var fromStock = await _context.Stocks
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(s => s.ItemId == itemId && s.BranchId == fromBranch);
 
-            _context.Transfers.Add(transfer);
-            await _context.SaveChangesAsync();
+                if (fromStock == null || fromStock.Quantity < quantity)
+                {
+                    throw new InvalidOperationException(
+                        $"Insufficient stock in '{fromBranch}'. Available: {fromStock?.Quantity ?? 0}, Tried: {quantity}");
+                }
+
+                // 2️⃣ Perform stock operations
+                await StockOutAsync(itemId, fromBranch, quantity);
+                await StockInAsync(itemId, toBranch, quantity);
+
+                // 3️⃣ Generate next TransferId (T0001, T0002...)
+                var lastTransfer = await _context.Transfers
+                    .AsNoTracking()
+                    .OrderByDescending(t => t.TransferId)
+                    .FirstOrDefaultAsync();
+
+                int nextNumber = 1;
+                if (lastTransfer != null && lastTransfer.TransferId.StartsWith("T") &&
+                    int.TryParse(lastTransfer.TransferId.Substring(1), out var lastNumber))
+                {
+                    nextNumber = lastNumber + 1;
+                }
+
+                var transfer = new Transfer
+                {
+                    TransferId = $"T{nextNumber:D4}",
+                    ItemId = itemId,
+                    FromBranch = fromBranch,
+                    ToBranch = toBranch,
+                    Quantity = quantity,
+                    Unit = unit,
+                    TransferDate = DateTime.Now
+                };
+
+                _context.Transfers.Add(transfer);
+                await _context.SaveChangesAsync();
+
+                // 4️⃣ Commit transaction only if everything succeeded
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                // ❌ Rollback on any error to maintain data consistency
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         // ==========================

@@ -1,4 +1,3 @@
-B0000|Kyle Sushi HQ|Sydney|2000|+61-151-241-153
 B0001|Kyle Sushi CBD|328 Lopez Plaza,CBD,Sydney,NSW|2000|+61-434-240-053
 B0002|Kyle Sushi Bondi|130 Crystal Walk,Bondi,Sydney,NSW|2026|+61-454-629-942
 B0003|Kyle Sushi Strathfield|25 The Boulevarde, Strathfield, Sydney, NSW|2135|+61 2 9746 1200

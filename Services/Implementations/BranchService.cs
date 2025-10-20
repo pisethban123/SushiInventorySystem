@@ -46,8 +46,17 @@ namespace SushiInventorySystem.Services.Implementations
 
         public async Task UpdateAsync(Branch branch)
         {
-            _context.Branches.Update(branch);
-            await _context.SaveChangesAsync();
+            var existingBranch = await _context.Branches.FindAsync(branch.BranchId);
+
+            if (existingBranch != null)
+            {
+                existingBranch.BranchName = branch.BranchName;
+                existingBranch.Address = branch.Address;
+                existingBranch.Postcode = branch.Postcode;
+                existingBranch.Phone = branch.Phone;
+
+                await _context.SaveChangesAsync();
+            }
         }
 
         public async Task DeleteAsync(string id)

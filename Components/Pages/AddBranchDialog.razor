@@ -1,0 +1,81 @@
+﻿@rendermode InteractiveServer
+@using MudBlazor
+@using SushiInventorySystem.Models
+@using SushiInventorySystem.Services.Interfaces
+@inject IBranchService BranchService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="form" @bind-IsValid="isValid">
+            <MudTextField @bind-Value="newBranch.BranchName"
+                          Label="Branch Name"
+                          Required="true"
+                          RequiredError="Branch Name is required" />
+
+            <MudTextField @bind-Value="newBranch.Address"
+                          Label="Address"
+                          Required="true"
+                          RequiredError="Address is required"
+                          Class="mt-3" />
+
+            <MudTextField @bind-Value="newBranch.Postcode"
+                          Label="Postcode"
+                          Required="true"
+                          RequiredError="Postcode is required"
+                          Class="mt-3" />
+
+            <MudTextField @bind-Value="newBranch.Phone"
+                          Label="Phone"
+                          Required="true"
+                          RequiredError="Phone is required"
+                          Class="mt-3" />
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   OnClick="Save"
+                   Disabled="@(!isValid)">
+            Save
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OnSave { get; set; }
+
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    private MudForm form = default!;
+    private bool isValid;
+    private Branch newBranch = new();
+
+    private async Task Save()
+    {
+        await form.Validate();
+
+        if (!isValid) return;
+
+        try
+        {
+            await BranchService.CreateAsync(newBranch);
+            Snackbar.Add("Branch added successfully!", Severity.Success);
+            await OnSave.InvokeAsync(true);
+            MudDialog.Close(DialogResult.Ok(true));
+            
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error adding branch: {ex.Message}", Severity.Error);
+        }
+    }
+    private void Cancel() => MudDialog.Cancel();
+
+    }

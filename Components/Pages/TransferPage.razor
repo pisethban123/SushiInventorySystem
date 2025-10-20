@@ -1,9 +1,11 @@
 ﻿@page "/transfer"
+@rendermode InteractiveServer
 @using MudBlazor
-@using SushiInventorySystem.Data;
-@using SushiInventorySystem.Models;
-@using SushiInventorySystem.Services.Interfaces;
+@using SushiInventorySystem.Models
+@using SushiInventorySystem.Services.Interfaces
 @inject IStockService StockService
+@inject IItemService ItemService
+@inject IBranchService BranchService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
 
@@ -12,8 +14,7 @@
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4 px-2">
     <MudText Typo="Typo.h4" Class="mb-4">Transfer Management</MudText>
 
-    @* Transfer Button *@
-    <MudStack Row="true" Class="mb-4">
+    <MudStack Row="true" Spacing="2" Class="mb-4">
         <MudButton Variant="Variant.Filled"
                    Color="Color.Primary"
                    StartIcon="@Icons.Material.Filled.SwapHoriz"
@@ -22,7 +23,6 @@
         </MudButton>
     </MudStack>
 
-    @* Transfer History Table *@
     <MudPaper Elevation="2" Class="table-container">
         <MudTable Items="@transfers"
                   Hover="true"
@@ -37,25 +37,25 @@
                 <MudSpacer />
                 <MudText Typo="Typo.body2" Class="mr-2">Total: @transfers.Count transfers</MudText>
             </ToolBarContent>
+
             <HeaderContent>
                 <MudTh>Transfer ID</MudTh>
-                <MudTh>Item ID</MudTh>
                 <MudTh>Item Name</MudTh>
-                <MudTh Class="quantity-column">Quantity</MudTh>
-                <MudTh Class="unit-column">Unit</MudTh>
-                <MudTh Class="from-column">From Branch</MudTh>
-                <MudTh Class="to-column">To Branch</MudTh>
-                <MudTh Class="date-column">Transfer Date</MudTh>
+                <MudTh>Quantity</MudTh>
+                <MudTh>Unit</MudTh>
+                <MudTh>From Branch</MudTh>
+                <MudTh>To Branch</MudTh>
+                <MudTh>Date</MudTh>
             </HeaderContent>
+
             <RowTemplate>
-                <MudTd DataLabel="Transfer ID">@context.TransferId</MudTd>
-                <MudTd DataLabel="Item ID">@context.ItemId</MudTd>
-                <MudTd DataLabel="Item Name">@(context.Item?.ItemName ?? "N/A")</MudTd>
-                <MudTd DataLabel="Quantity" Class="quantity-column">@context.Quantity</MudTd>
-                <MudTd DataLabel="Unit" Class="unit-column">@context.Unit</MudTd>
-                <MudTd DataLabel="From Branch" Class="from-column">@(context.From?.BranchName ?? "N/A")</MudTd>
-                <MudTd DataLabel="To Branch" Class="to-column">@(context.To?.BranchName ?? "N/A")</MudTd>
-                <MudTd DataLabel="Transfer Date" Class="date-column">@context.TransferDate.ToString("yyyy-MM-dd HH:mm")</MudTd>
+                <MudTd>@context.TransferId</MudTd>
+                <MudTd>@context.Item?.ItemName</MudTd>
+                <MudTd>@context.Quantity</MudTd>
+                <MudTd>@context.Unit</MudTd>
+                <MudTd>@context.FromBranch</MudTd>
+                <MudTd>@context.ToBranch</MudTd>
+                <MudTd>@context.TransferDate.ToString("dd/MM/yyyy HH:mm")</MudTd>
             </RowTemplate>
         </MudTable>
     </MudPaper>
@@ -66,78 +66,75 @@
         overflow: hidden;
     }
 
-    /* Ensure all cells have consistent vertical alignment */
+    /* Keep table tidy */
     .transfer-table .mud-table-cell {
         vertical-align: middle !important;
     }
 
-    /* Smooth scrolling */
+    /* Make it scrollable */
     .transfer-table .mud-table-container {
         overflow-y: auto;
         scroll-behavior: smooth;
     }
 
-    /* Mobile - matches NavMenu breakpoint (up to 640px) */
+    /* Sticky header + scroll */
+    .transfer-table {
+        display: block;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+        .transfer-table .mud-table-head {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background-color: var(--mud-palette-surface);
+        }
+
+    /* Mobile view */
     @@media (max-width: 640.98px) {
         .transfer-table {
             font-size: 0.875rem;
-        }
-
-        .quantity-column,
-        .unit-column,
-        .date-column {
-            display: none !important;
         }
 
         .mud-table-cell,
         .mud-table-head-cell {
             padding: 8px 4px !important;
         }
-        /* Adjust container padding on mobile to match main layout */
+
         .mud-container {
             padding-left: 1rem !important;
             padding-right: 1rem !important;
         }
-        /* Adjust table height for mobile */
+
         .transfer-table {
             height: calc(100vh - 280px) !important;
         }
     }
 
-    /* Tablet (641px to 960px) - matches NavMenu desktop breakpoint */
     @@media (min-width: 641px) and (max-width: 960px) {
-        .unit-column,
-        .date-column {
-            display: none !important;
-        }
-
         .transfer-table {
             font-size: 0.9rem;
         }
     }
 
-    /* Medium screens (961px to 1280px) */
     @@media (min-width: 961px) and (max-width: 1280px) {
         .transfer-table {
             font-size: 0.95rem;
         }
     }
 
-    /* Desktop - matches NavMenu desktop (min-width: 641px) */
     @@media (min-width: 641px) {
         .transfer-table {
             overflow-x: auto;
         }
-    }
 
-    /* Ensure proper spacing when sidebar is visible */
-    @@media (min-width: 641px) {
         .mud-container {
             max-width: 100%;
         }
     }
 
-    /* Custom scrollbar styling */
+    /* Scrollbar style */
     .transfer-table .mud-table-container::-webkit-scrollbar {
         width: 8px;
         height: 8px;
@@ -159,9 +156,13 @@
 
 @code {
     private List<Transfer> transfers = new();
+    private List<Item> items = new();
+    private List<Branch> branches = new();
 
     protected override async Task OnInitializedAsync()
     {
+        items = (await ItemService.GetAllAsync()).ToList();
+        branches = (await BranchService.GetAllAsync()).ToList();
         await LoadTransfers();
     }
 
@@ -175,12 +176,24 @@
         catch (Exception ex)
         {
             Snackbar.Add($"Error loading transfers: {ex.Message}", Severity.Error);
-            Console.WriteLine($"Error fetching transfers: {ex.Message}");
         }
     }
 
     private async Task HandleTransfer()
     {
-        // Transfer logic will be implemented later
+        var dialog = await DialogService.ShowAsync<TransferDialog>("Transfer Item",
+            new DialogParameters
+            {
+                ["Items"] = items,
+                ["Branches"] = branches,
+                ["OnSave"] = EventCallback.Factory.Create<bool>(this, async (success) =>
+                {
+                    if (success)
+                        await LoadTransfers();
+                })
+            },
+            new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true });
+
+        await dialog.Result;
     }
 }

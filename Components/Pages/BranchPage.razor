@@ -1,8 +1,8 @@
 ﻿@page "/branch"
+@rendermode InteractiveServer
 @using MudBlazor
-@using SushiInventorySystem.Data;
-@using SushiInventorySystem.Models;
-@using SushiInventorySystem.Services.Interfaces;
+@using SushiInventorySystem.Models
+@using SushiInventorySystem.Services.Interfaces
 @inject IBranchService BranchService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
@@ -37,32 +37,65 @@
                 <MudSpacer />
                 <MudText Typo="Typo.body2" Class="mr-2">Total: @branches.Count branches</MudText>
             </ToolBarContent>
+
             <HeaderContent>
                 <MudTh>Branch ID</MudTh>
                 <MudTh>Branch Name</MudTh>
                 <MudTh Class="address-column">Address</MudTh>
                 <MudTh Class="postcode-column">Postcode</MudTh>
                 <MudTh Class="contact-column">Phone</MudTh>
-                <MudTh Style="text-align: center;">Actions</MudTh>
+                <MudTh Style="text-align:center;">Actions</MudTh>
             </HeaderContent>
+
             <RowTemplate>
-                <MudTd DataLabel="Branch ID">@context.BranchId</MudTd>
-                <MudTd DataLabel="Branch Name">@context.BranchName</MudTd>
-                <MudTd DataLabel="Address" Class="address-column">@context.Address</MudTd>
-                <MudTd DataLabel="Postcode" Class="postcode-column">@context.Postcode</MudTd>
-                <MudTd DataLabel="Contact" Class="contact-column">@context.Phone</MudTd>
-                <MudTd DataLabel="Actions" Style="text-align: center;">
-                    <MudIconButton Size="Size.Small"
-                                   Icon="@Icons.Material.Outlined.Edit"
-                                   Color="Color.Secondary"
-                                   OnClick="@(() => HandleEdit(context))"
-                                   Title="Edit" />
-                    <MudIconButton Size="Size.Small"
-                                   Icon="@Icons.Material.Outlined.Delete"
-                                   Color="Color.Error"
-                                   OnClick="@(() => HandleDelete(context))"
-                                   Title="Delete" />
-                </MudTd>
+                @if (editingBranch != null && editingBranch.BranchId == context.BranchId)
+                {
+                    <MudTd>@context.BranchId</MudTd>
+                    <MudTd>
+                        <MudTextField @bind-Value="editingBranch.BranchName"
+                                      Dense="true" Immediate="true" />
+                    </MudTd>
+                    <MudTd Class="address-column">
+                        <MudTextField @bind-Value="editingBranch.Address"
+                                      Dense="true" Immediate="true" />
+                    </MudTd>
+                    <MudTd Class="postcode-column">
+                        <MudTextField @bind-Value="editingBranch.Postcode"
+                                      Dense="true" Immediate="true" />
+                    </MudTd>
+                    <MudTd Class="contact-column">
+                        <MudTextField @bind-Value="editingBranch.Phone"
+                                      Dense="true" Immediate="true" />
+                    </MudTd>
+                    <MudTd Style="text-align:center;">
+                        <MudIconButton Icon="@Icons.Material.Filled.Check"
+                                       Color="Color.Success"
+                                       Size="Size.Small"
+                                       OnClick="SaveEdit" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Close"
+                                       Color="Color.Error"
+                                       Size="Size.Small"
+                                       OnClick="CancelEdit" />
+                    </MudTd>
+                }
+                else
+                {
+                    <MudTd DataLabel="Branch ID">@context.BranchId</MudTd>
+                    <MudTd DataLabel="Branch Name">@context.BranchName</MudTd>
+                    <MudTd DataLabel="Address" Class="address-column">@context.Address</MudTd>
+                    <MudTd DataLabel="Postcode" Class="postcode-column">@context.Postcode</MudTd>
+                    <MudTd DataLabel="Phone" Class="contact-column">@context.Phone</MudTd>
+                    <MudTd DataLabel="Actions" Style="text-align:center;">
+                        <MudIconButton Icon="@Icons.Material.Outlined.Edit"
+                                       Color="Color.Secondary"
+                                       Size="Size.Small"
+                                       OnClick="@(() => HandleEdit(context))" />
+                        <MudIconButton Icon="@Icons.Material.Outlined.Delete"
+                                       Color="Color.Error"
+                                       Size="Size.Small"
+                                       OnClick="@(() => HandleDelete(context))" />
+                    </MudTd>
+                }
             </RowTemplate>
         </MudTable>
     </MudPaper>
@@ -73,100 +106,97 @@
         overflow: hidden;
     }
 
-    /* Ensure all cells have consistent vertical alignment */
-    .branch-table .mud-table-cell {
+    /* Keep table tidy */
+    .transfer-table .mud-table-cell {
         vertical-align: middle !important;
     }
 
-    /* Smooth scrolling */
-    .branch-table .mud-table-container {
+    /* Make it scrollable */
+    .transfer-table .mud-table-container {
         overflow-y: auto;
         scroll-behavior: smooth;
     }
 
-    /* Mobile - matches NavMenu breakpoint (up to 640px) */
+    /* Sticky header + scroll */
+    .transfer-table {
+        display: block;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+        .transfer-table .mud-table-head {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background-color: var(--mud-palette-surface);
+        }
+
+    /* Mobile view */
     @@media (max-width: 640.98px) {
-        .branch-table {
+        .transfer-table {
             font-size: 0.875rem;
-        }
-
-        .address-column {
-            display: none !important;
-        }
-
-        .contact-column {
-            display: none !important;
         }
 
         .mud-table-cell,
         .mud-table-head-cell {
             padding: 8px 4px !important;
         }
-        /* Adjust container padding on mobile to match main layout */
+
         .mud-container {
             padding-left: 1rem !important;
             padding-right: 1rem !important;
         }
-        /* Adjust table height for mobile */
-        .branch-table {
+
+        .transfer-table {
             height: calc(100vh - 280px) !important;
         }
     }
 
-    /* Tablet (641px to 960px) - matches NavMenu desktop breakpoint */
     @@media (min-width: 641px) and (max-width: 960px) {
-        .postcode-column {
-            display: none !important;
-        }
-
-        .branch-table {
+        .transfer-table {
             font-size: 0.9rem;
         }
     }
 
-    /* Medium screens (961px to 1280px) */
     @@media (min-width: 961px) and (max-width: 1280px) {
-        .branch-table {
+        .transfer-table {
             font-size: 0.95rem;
         }
     }
 
-    /* Desktop - matches NavMenu desktop (min-width: 641px) */
     @@media (min-width: 641px) {
-        .branch-table {
+        .transfer-table {
             overflow-x: auto;
         }
-    }
 
-    /* Ensure proper spacing when sidebar is visible */
-    @@media (min-width: 641px) {
         .mud-container {
             max-width: 100%;
         }
     }
 
-    /* Custom scrollbar styling */
-    .branch-table .mud-table-container::-webkit-scrollbar {
+    /* Scrollbar style */
+    .transfer-table .mud-table-container::-webkit-scrollbar {
         width: 8px;
         height: 8px;
     }
 
-    .branch-table .mud-table-container::-webkit-scrollbar-track {
+    .transfer-table .mud-table-container::-webkit-scrollbar-track {
         background: #f1f1f1;
     }
 
-    .branch-table .mud-table-container::-webkit-scrollbar-thumb {
+    .transfer-table .mud-table-container::-webkit-scrollbar-thumb {
         background: #888;
         border-radius: 4px;
     }
 
-        .branch-table .mud-table-container::-webkit-scrollbar-thumb:hover {
+        .transfer-table .mud-table-container::-webkit-scrollbar-thumb:hover {
             background: #555;
         }
 </style>
 
 @code {
     private List<Branch> branches = new();
+    private Branch? editingBranch;
 
     protected override async Task OnInitializedAsync()
     {
@@ -189,16 +219,82 @@
 
     private async Task HandleAdd()
     {
-        // Add logic will be implemented later
+        var dialog = await DialogService.ShowAsync<AddBranchDialog>("Add New Branch",
+            new DialogParameters
+            {
+                ["OnCancel"] = EventCallback.Factory.Create(this, () => { }),
+                ["OnSave"] = EventCallback.Factory.Create<bool>(this, async (success) =>
+                {
+                    if (success)
+                    {
+                        await LoadBranches();
+                    }
+                })
+            },
+            new DialogOptions
+            {
+                CloseButton = true,
+                MaxWidth = MaxWidth.Small,
+                FullWidth = true
+            });
+
+        await dialog.Result;
     }
 
     private void HandleEdit(Branch branch)
     {
-        // Edit logic will be implemented later
+        editingBranch = new Branch
+        {
+            BranchId = branch.BranchId,
+            BranchName = branch.BranchName,
+            Address = branch.Address,
+            Postcode = branch.Postcode,
+            Phone = branch.Phone
+        };
     }
 
-    private void HandleDelete(Branch branch)
+    private async Task SaveEdit()
     {
-        // Delete logic will be implemented later
+        if (editingBranch == null) return;
+
+        try
+        {
+            await BranchService.UpdateAsync(editingBranch);
+            Snackbar.Add("Branch updated successfully!", Severity.Success);
+            editingBranch = null;
+            await LoadBranches();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error updating branch: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void CancelEdit()
+    {
+        editingBranch = null;
+    }
+
+    private async Task HandleDelete(Branch branch)
+    {
+        bool? confirm = await DialogService.ShowMessageBox(
+            "Confirm Delete",
+            $"Are you sure you want to delete branch '{branch.BranchName}'?",
+            yesText: "Delete",
+            cancelText: "Cancel");
+
+        if (confirm == true)
+        {
+            try
+            {
+                await BranchService.DeleteAsync(branch.BranchId);
+                Snackbar.Add("Branch deleted successfully!", Severity.Success);
+                await LoadBranches();
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error deleting branch: {ex.Message}", Severity.Error);
+            }
+        }
     }
 }

@@ -46,8 +46,20 @@ namespace SushiInventorySystem.Services.Implementations
 
         public async Task UpdateAsync(Item item)
         {
-            _context.Items.Update(item);
-            await _context.SaveChangesAsync();
+            var existingItem = await _context.Items.FindAsync(item.ItemId);
+
+            if (existingItem != null)
+            {
+                existingItem.ItemName = item.ItemName;
+                existingItem.Category = item.Category;
+                existingItem.Unit = item.Unit;
+                existingItem.Supplier = item.Supplier;
+                existingItem.CostPerUnit = item.CostPerUnit;
+                existingItem.MinStock = item.MinStock;
+                existingItem.MaxStock = item.MaxStock;
+
+                await _context.SaveChangesAsync();
+            }
         }
 
         public async Task DeleteAsync(string id)

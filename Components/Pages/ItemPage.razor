@@ -1,8 +1,8 @@
 ﻿@page "/item"
+@rendermode InteractiveServer
 @using MudBlazor
-@using SushiInventorySystem.Data;
-@using SushiInventorySystem.Models;
-@using SushiInventorySystem.Services.Interfaces;
+@using SushiInventorySystem.Models
+@using SushiInventorySystem.Services.Interfaces
 @inject IItemService ItemService
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
@@ -12,17 +12,17 @@
 <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4 px-2">
     <MudText Typo="Typo.h4" Class="mb-4">Item Management</MudText>
 
-    @* Add Button *@
-    <MudStack Row="true" Class="mb-4">
+    <!-- Add Button -->
+    <MudStack Row="true" Spacing="2" Class="mb-4">
         <MudButton Variant="Variant.Filled"
                    Color="Color.Primary"
                    StartIcon="@Icons.Material.Filled.Add"
                    OnClick="HandleAdd">
-            Add
+            Add Item
         </MudButton>
     </MudStack>
 
-    @* Item Table *@
+    <!-- Item Table -->
     <MudPaper Elevation="2" Class="table-container">
         <MudTable Items="@items"
                   Hover="true"
@@ -37,6 +37,7 @@
                 <MudSpacer />
                 <MudText Typo="Typo.body2" Class="mr-2">Total: @items.Count items</MudText>
             </ToolBarContent>
+
             <HeaderContent>
                 <MudTh>Item ID</MudTh>
                 <MudTh>Item Name</MudTh>
@@ -46,29 +47,40 @@
                 <MudTh Class="cost-column">Cost per Unit ($)</MudTh>
                 <MudTh Class="min-column">Min Stock</MudTh>
                 <MudTh Class="max-column">Max Stock</MudTh>
-                <MudTh Style="text-align: center;">Actions</MudTh>
+                <MudTh Style="text-align:center;">Actions</MudTh>
             </HeaderContent>
+
             <RowTemplate>
-                <MudTd DataLabel="Item ID">@context.ItemId</MudTd>
-                <MudTd DataLabel="Item Name">@context.ItemName</MudTd>
-                <MudTd DataLabel="Category" Class="category-column">@context.Category</MudTd>
-                <MudTd DataLabel="Unit" Class="unit-column">@context.Unit</MudTd>
-                <MudTd DataLabel="Supplier" Class="supplier-column">@context.Supplier</MudTd>
-                <MudTd DataLabel="Cost ($)" Class="cost-column">@context.CostPerUnit.ToString("0.00")</MudTd>
-                <MudTd DataLabel="Min Stock" Class="min-column">@context.MinStock</MudTd>
-                <MudTd DataLabel="Max Stock" Class="max-column">@context.MaxStock</MudTd>
-                <MudTd DataLabel="Actions" Style="text-align: center;">
-                    <MudIconButton Size="Size.Small"
-                                   Icon="@Icons.Material.Outlined.Edit"
-                                   Color="Color.Secondary"
-                                   OnClick="@(() => HandleEdit(context))"
-                                   Title="Edit" />
-                    <MudIconButton Size="Size.Small"
-                                   Icon="@Icons.Material.Outlined.Delete"
-                                   Color="Color.Error"
-                                   OnClick="@(() => HandleDelete(context))"
-                                   Title="Delete" />
-                </MudTd>
+                @if (editingItem != null && editingItem.ItemId == context.ItemId)
+                {
+                    <MudTd>@context.ItemId</MudTd>
+                    <MudTd><MudTextField @bind-Value="editingItem.ItemName" Dense="true" Immediate="true" /></MudTd>
+                    <MudTd Class="category-column"><MudTextField @bind-Value="editingItem.Category" Dense="true" Immediate="true" /></MudTd>
+                    <MudTd Class="unit-column"><MudTextField @bind-Value="editingItem.Unit" Dense="true" Immediate="true" /></MudTd>
+                    <MudTd Class="supplier-column"><MudTextField @bind-Value="editingItem.Supplier" Dense="true" Immediate="true" /></MudTd>
+                    <MudTd Class="cost-column"><MudNumericField @bind-Value="editingItem.CostPerUnit" Dense="true" Immediate="true" /></MudTd>
+                    <MudTd Class="min-column"><MudNumericField @bind-Value="editingItem.MinStock" Dense="true" Immediate="true" /></MudTd>
+                    <MudTd Class="max-column"><MudNumericField @bind-Value="editingItem.MaxStock" Dense="true" Immediate="true" /></MudTd>
+                    <MudTd Style="text-align:center;">
+                        <MudIconButton Icon="@Icons.Material.Filled.Check" Color="Color.Success" Size="Size.Small" OnClick="SaveEdit" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Error" Size="Size.Small" OnClick="CancelEdit" />
+                    </MudTd>
+                }
+                else
+                {
+                    <MudTd DataLabel="Item ID">@context.ItemId</MudTd>
+                    <MudTd DataLabel="Item Name">@context.ItemName</MudTd>
+                    <MudTd DataLabel="Category" Class="category-column">@context.Category</MudTd>
+                    <MudTd DataLabel="Unit" Class="unit-column">@context.Unit</MudTd>
+                    <MudTd DataLabel="Supplier" Class="supplier-column">@context.Supplier</MudTd>
+                    <MudTd DataLabel="Cost ($)" Class="cost-column">@context.CostPerUnit.ToString("0.00")</MudTd>
+                    <MudTd DataLabel="Min Stock" Class="min-column">@context.MinStock</MudTd>
+                    <MudTd DataLabel="Max Stock" Class="max-column">@context.MaxStock</MudTd>
+                    <MudTd DataLabel="Actions" Style="text-align:center;">
+                        <MudIconButton Icon="@Icons.Material.Outlined.Edit" Color="Color.Secondary" Size="Size.Small" OnClick="@(() => HandleEdit(context))" />
+                        <MudIconButton Icon="@Icons.Material.Outlined.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => HandleDelete(context))" />
+                    </MudTd>
+                }
             </RowTemplate>
         </MudTable>
     </MudPaper>
@@ -79,25 +91,40 @@
         overflow: hidden;
     }
 
-    /* Ensure all cells have consistent vertical alignment */
-    .item-table .mud-table-cell {
-        vertical-align: middle !important;
-    }
-
-    /* Smooth scrolling */
-    .item-table .mud-table-container {
+    /* Table height + scrolling (matches Stock page) */
+    .item-table {
+        display: block;
+        max-height: 80vh;
         overflow-y: auto;
-        scroll-behavior: smooth;
     }
 
-    /* Mobile - matches NavMenu breakpoint (up to 640px) */
+        /* Sticky header */
+        .item-table .mud-table-head {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background-color: var(--mud-palette-surface);
+        }
+
+        /* Align content middle */
+        .item-table .mud-table-cell {
+            vertical-align: middle !important;
+        }
+
+        /* Scroll behavior */
+        .item-table .mud-table-container {
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+    /* Mobile - up to 640px */
     @@media (max-width: 640.98px) {
         .item-table {
             font-size: 0.875rem;
         }
 
         .category-column,
-        .description-column,
+        .supplier-column,
         .cost-column {
             display: none !important;
         }
@@ -106,20 +133,20 @@
         .mud-table-head-cell {
             padding: 8px 4px !important;
         }
-        /* Adjust container padding on mobile to match main layout */
+
         .mud-container {
             padding-left: 1rem !important;
             padding-right: 1rem !important;
         }
-        /* Adjust table height for mobile */
+
         .item-table {
             height: calc(100vh - 280px) !important;
         }
     }
 
-    /* Tablet (641px to 960px) - matches NavMenu desktop breakpoint */
+    /* Tablet (641px–960px) */
     @@media (min-width: 641px) and (max-width: 960px) {
-        .description-column {
+        .supplier-column {
             display: none !important;
         }
 
@@ -128,28 +155,25 @@
         }
     }
 
-    /* Medium screens (961px to 1280px) */
+    /* Medium (961px–1280px) */
     @@media (min-width: 961px) and (max-width: 1280px) {
         .item-table {
             font-size: 0.95rem;
         }
     }
 
-    /* Desktop - matches NavMenu desktop (min-width: 641px) */
+    /* Desktop (≥641px) */
     @@media (min-width: 641px) {
         .item-table {
             overflow-x: auto;
         }
-    }
 
-    /* Ensure proper spacing when sidebar is visible */
-    @@media (min-width: 641px) {
         .mud-container {
             max-width: 100%;
         }
     }
 
-    /* Custom scrollbar styling */
+    /* Scrollbar style */
     .item-table .mud-table-container::-webkit-scrollbar {
         width: 8px;
         height: 8px;
@@ -171,11 +195,9 @@
 
 @code {
     private List<Item> items = new();
+    private Item? editingItem;
 
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadItems();
-    }
+    protected override async Task OnInitializedAsync() => await LoadItems();
 
     private async Task LoadItems()
     {
@@ -193,16 +215,80 @@
 
     private async Task HandleAdd()
     {
-        // Add logic will be implemented later
+        var dialog = await DialogService.ShowAsync<AddItemDialog>("Add New Item",
+            new DialogParameters
+            {
+                ["OnCancel"] = EventCallback.Factory.Create(this, () => { }),
+                ["OnSave"] = EventCallback.Factory.Create<bool>(this, async (success) =>
+                {
+                    if (success)
+                        await LoadItems();
+                })
+            },
+            new DialogOptions
+            {
+                CloseButton = true,
+                MaxWidth = MaxWidth.Small,
+                FullWidth = true
+            });
+
+        await dialog.Result;
     }
 
     private void HandleEdit(Item item)
     {
-        // Edit logic will be implemented later
+        editingItem = new Item
+        {
+            ItemId = item.ItemId,
+            ItemName = item.ItemName,
+            Category = item.Category,
+            Unit = item.Unit,
+            Supplier = item.Supplier,
+            CostPerUnit = item.CostPerUnit,
+            MinStock = item.MinStock,
+            MaxStock = item.MaxStock
+        };
     }
 
-    private void HandleDelete(Item item)
+    private async Task SaveEdit()
     {
-        // Delete logic will be implemented later
+        if (editingItem == null) return;
+
+        try
+        {
+            await ItemService.UpdateAsync(editingItem);
+            Snackbar.Add("Item updated successfully!", Severity.Success);
+            editingItem = null;
+            await LoadItems();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error updating item: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void CancelEdit() => editingItem = null;
+
+    private async Task HandleDelete(Item item)
+    {
+        bool? confirm = await DialogService.ShowMessageBox(
+            "Confirm Delete",
+            $"Are you sure you want to delete item '{item.ItemName}'?",
+            yesText: "Delete",
+            cancelText: "Cancel");
+
+        if (confirm == true)
+        {
+            try
+            {
+                await ItemService.DeleteAsync(item.ItemId);
+                Snackbar.Add("Item deleted successfully!", Severity.Success);
+                await LoadItems();
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error deleting item: {ex.Message}", Severity.Error);
+            }
+        }
     }
 }
