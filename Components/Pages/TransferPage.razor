@@ -1,0 +1,199 @@
+﻿@page "/transfer"
+@rendermode InteractiveServer
+@using MudBlazor
+@using SushiInventorySystem.Models
+@using SushiInventorySystem.Services.Interfaces
+@inject IStockService StockService
+@inject IItemService ItemService
+@inject IBranchService BranchService
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<PageTitle>Transfer Management</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4 px-2">
+    <MudText Typo="Typo.h4" Class="mb-4">Transfer Management</MudText>
+
+    <MudStack Row="true" Spacing="2" Class="mb-4">
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.SwapHoriz"
+                   OnClick="HandleTransfer">
+            Transfer Item
+        </MudButton>
+    </MudStack>
+
+    <MudPaper Elevation="2" Class="table-container">
+        <MudTable Items="@transfers"
+                  Hover="true"
+                  Striped="true"
+                  Bordered="true"
+                  Dense="false"
+                  FixedHeader="true"
+                  Height="flex"
+                  Class="transfer-table">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Transfer History</MudText>
+                <MudSpacer />
+                <MudText Typo="Typo.body2" Class="mr-2">Total: @transfers.Count transfers</MudText>
+            </ToolBarContent>
+
+            <HeaderContent>
+                <MudTh>Transfer ID</MudTh>
+                <MudTh>Item Name</MudTh>
+                <MudTh>Quantity</MudTh>
+                <MudTh>Unit</MudTh>
+                <MudTh>From Branch</MudTh>
+                <MudTh>To Branch</MudTh>
+                <MudTh>Date</MudTh>
+            </HeaderContent>
+
+            <RowTemplate>
+                <MudTd>@context.TransferId</MudTd>
+                <MudTd>@context.Item?.ItemName</MudTd>
+                <MudTd>@context.Quantity</MudTd>
+                <MudTd>@context.Unit</MudTd>
+                <MudTd>@context.FromBranch</MudTd>
+                <MudTd>@context.ToBranch</MudTd>
+                <MudTd>@context.TransferDate.ToString("dd/MM/yyyy HH:mm")</MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudPaper>
+</MudContainer>
+
+<style>
+    .table-container {
+        overflow: hidden;
+    }
+
+    /* Keep table tidy */
+    .transfer-table .mud-table-cell {
+        vertical-align: middle !important;
+    }
+
+    /* Make it scrollable */
+    .transfer-table .mud-table-container {
+        overflow-y: auto;
+        scroll-behavior: smooth;
+    }
+
+    /* Sticky header + scroll */
+    .transfer-table {
+        display: block;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+        .transfer-table .mud-table-head {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background-color: var(--mud-palette-surface);
+        }
+
+    /* Mobile view */
+    @@media (max-width: 640.98px) {
+        .transfer-table {
+            font-size: 0.875rem;
+        }
+
+        .mud-table-cell,
+        .mud-table-head-cell {
+            padding: 8px 4px !important;
+        }
+
+        .mud-container {
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+        }
+
+        .transfer-table {
+            height: calc(100vh - 280px) !important;
+        }
+    }
+
+    @@media (min-width: 641px) and (max-width: 960px) {
+        .transfer-table {
+            font-size: 0.9rem;
+        }
+    }
+
+    @@media (min-width: 961px) and (max-width: 1280px) {
+        .transfer-table {
+            font-size: 0.95rem;
+        }
+    }
+
+    @@media (min-width: 641px) {
+        .transfer-table {
+            overflow-x: auto;
+        }
+
+        .mud-container {
+            max-width: 100%;
+        }
+    }
+
+    /* Scrollbar style */
+    .transfer-table .mud-table-container::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    .transfer-table .mud-table-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+
+    .transfer-table .mud-table-container::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 4px;
+    }
+
+        .transfer-table .mud-table-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+</style>
+
+@code {
+    private List<Transfer> transfers = new();
+    private List<Item> items = new();
+    private List<Branch> branches = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        items = (await ItemService.GetAllAsync()).ToList();
+        branches = (await BranchService.GetAllAsync()).ToList();
+        await LoadTransfers();
+    }
+
+    private async Task LoadTransfers()
+    {
+        try
+        {
+            var result = await StockService.GetTransferHistoryAsync();
+            transfers = result.ToList();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading transfers: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private async Task HandleTransfer()
+    {
+        var dialog = await DialogService.ShowAsync<TransferDialog>("Transfer Item",
+            new DialogParameters
+            {
+                ["Items"] = items,
+                ["Branches"] = branches,
+                ["OnSave"] = EventCallback.Factory.Create<bool>(this, async (success) =>
+                {
+                    if (success)
+                        await LoadTransfers();
+                })
+            },
+            new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true });
+
+        await dialog.Result;
+    }
+}

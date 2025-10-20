@@ -1,0 +1,8 @@
+B0001|Kyle Sushi CBD|328 Lopez Plaza,CBD,Sydney,NSW|2000|+61-434-240-053
+B0002|Kyle Sushi Bondi|130 Crystal Walk,Bondi,Sydney,NSW|2026|+61-454-629-942
+B0003|Kyle Sushi Strathfield|25 The Boulevarde, Strathfield, Sydney, NSW|2135|+61 2 9746 1200
+B0004|Kyle Sushi Chatswood|88 Victoria Avenue, Chatswood, Sydney, NSW|2067|+61 2 9412 8700
+B0005|Kyle Sushi Manly|22 Belgrave Street, Manly, Sydney, NSW|2095|+61 2 9977 3155
+B0006|Kyle Sushi Eastwood|143 Rowe Street, Eastwood, Sydney, NSW|2122|+61 2 9874 5600
+B0007|Kyle Sushi Mascot|5 Ross Smith Avenue, Mascot, Sydney, NSW|2020|+61 2 9667 8700
+B0008|Kyle Sushi Parramatta|12 Church Street, Parramatta, Sydney, NSW|2150|+61 2 9635 9200

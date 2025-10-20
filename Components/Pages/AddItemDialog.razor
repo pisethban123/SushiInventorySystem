@@ -1,0 +1,60 @@
+﻿@rendermode InteractiveServer
+@using MudBlazor
+@using SushiInventorySystem.Models
+@using SushiInventorySystem.Services.Interfaces
+@inject IItemService ItemService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="form" @bind-IsValid="isValid">
+            <MudTextField @bind-Value="newItem.ItemName" Label="Item Name" Required="true" RequiredError="Item Name is required" />
+            <MudTextField @bind-Value="newItem.Category" Label="Category" Class="mt-3" />
+            <MudTextField @bind-Value="newItem.Unit" Label="Unit" Class="mt-3" />
+            <MudTextField @bind-Value="newItem.Supplier" Label="Supplier" Class="mt-3" />
+            <MudNumericField @bind-Value="newItem.CostPerUnit" Label="Cost per Unit ($)" Class="mt-3" />
+            <MudNumericField @bind-Value="newItem.MinStock" Label="Min Stock" Class="mt-3" />
+            <MudNumericField @bind-Value="newItem.MaxStock" Label="Max Stock" Class="mt-3" />
+        </MudForm>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   OnClick="Save"
+                   Disabled="@(!isValid)">
+            Save
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public EventCallback<bool> OnSave { get; set; }
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; }
+
+    private MudForm form = default!;
+    private bool isValid;
+    private Item newItem = new();
+
+    private async Task Save()
+    {
+        await form.Validate();
+        if (!isValid) return;
+
+        try
+        {
+            await ItemService.CreateAsync(newItem);
+            Snackbar.Add("Item added successfully!", Severity.Success);
+            await OnSave.InvokeAsync(true);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error adding item: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

@@ -1,0 +1,10 @@
+I0001|Salmon Fillet|Seafood|kg|OceanFresh Co.|25.00|10|80
+I0002|Tuna Fillet|Seafood|kg|OceanFresh Co.|24.00|10|70
+I0003|Kingfish Fillet|Seafood|kg|OceanFresh Co.|44.00|8|60
+I0004|Sushi Rice|Grain|bag(10kg)|Nishiki Suppliers|65.00|15|100
+I0005|Nori Sheet|Seaweed|pack(100sheets)|Tokyo Foods|24.00|20|200
+I0006|Soy Sauce|Condiment|bottle(1L)|Kikkoman|6.00|25|150
+I0007|Wasabi Paste|Condiment|tube(100g)|House Foods|3.50|10|60
+I0008|Pickled Ginger|Condiment|pack(500g)|Yamasa Foods|5.00|15|70
+I0009|Tempura Flour|Dry Goods|bag(1kg)|Ajinomoto|4.50|8|50
+I0010|Panko Breadcrumbs|Dry Goods|bag(1kg)|Ajinomoto|4.00|8|60

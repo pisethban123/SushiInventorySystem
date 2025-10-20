@@ -1,0 +1,179 @@
+﻿@rendermode InteractiveServer
+@using MudBlazor
+@using SushiInventorySystem.Models
+@using SushiInventorySystem.Services.Interfaces
+@inject IStockService StockService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="form" @bind-IsValid="isValid">
+
+            <!-- 1️⃣ Item -->
+            <MudSelect T="string"
+                       Label="Item"
+                       Value="@selectedItemId"
+                       ValueChanged="OnItemChanged"
+                       Required="true"
+                       Immediate="true">
+                @foreach (var item in Items)
+                {
+                    <MudSelectItem Value="@item.ItemId">@item.ItemName</MudSelectItem>
+                }
+            </MudSelect>
+
+            <!-- 2️⃣ From Branch -->
+            <MudSelect T="string"
+                       Label="From Branch"
+                       Value="@fromBranchId"
+                       ValueChanged="OnFromBranchChanged"
+                       Required="true"
+                       Immediate="true"
+                       Class="mt-3">
+                @foreach (var branch in Branches)
+                {
+                    <MudSelectItem Value="@branch.BranchId">@branch.BranchName</MudSelectItem>
+                }
+            </MudSelect>
+
+            <!-- 3️⃣ To Branch -->
+            <MudSelect T="string"
+                       Label="To Branch"
+                       @bind-Value="toBranchId"
+                       Required="true"
+                       Class="mt-3">
+                @foreach (var branch in Branches.Where(b => b.BranchId != fromBranchId))
+                {
+                    <MudSelectItem Value="@branch.BranchId">@branch.BranchName</MudSelectItem>
+                }
+            </MudSelect>
+
+            <!-- 4️⃣ Quantity + Unit -->
+            <MudGrid Class="mt-3">
+                <MudItem xs="8">
+                    <MudNumericField T="int"
+                                     Label="Quantity to Transfer"
+                                     Value="@quantity"
+                                     ValueChanged="ValidateQuantity"
+                                     Required="true"
+                                     Min="1"
+                                     Immediate="true" />
+                    @if (availableStock >= 0 && !string.IsNullOrEmpty(selectedItemId) && !string.IsNullOrEmpty(fromBranchId))
+                    {
+                        <MudText Typo="Typo.caption" Class="text-secondary mt-1">
+                            Available: <b>@availableStock</b> @unit
+                        </MudText>
+                    }
+                </MudItem>
+                <MudItem xs="4">
+                    <MudTextField Label="Unit"
+                                  Value="@unit"
+                                  ReadOnly="true"
+                                  Placeholder="Auto-filled"
+                                  Class="w-100" />
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   OnClick="Transfer"
+                   Disabled="@(!isValid || quantity > availableStock)">
+            Transfer
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public List<Item> Items { get; set; } = new();
+    [Parameter] public List<Branch> Branches { get; set; } = new();
+    [Parameter] public EventCallback<bool> OnSave { get; set; }
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; }
+
+    private MudForm? form;
+    private bool isValid;
+    private string selectedItemId = string.Empty;
+    private string fromBranchId = string.Empty;
+    private string toBranchId = string.Empty;
+    private int quantity;
+    private string unit = string.Empty;
+    private int availableStock = -1;
+
+    private async Task OnItemChanged(string? value)
+    {
+        selectedItemId = value ?? string.Empty;
+        var selectedItem = Items.FirstOrDefault(i => i.ItemId == selectedItemId);
+        unit = selectedItem?.Unit ?? string.Empty;
+        await UpdateAvailableStock();
+    }
+
+    private async Task OnFromBranchChanged(string? value)
+    {
+        fromBranchId = value ?? string.Empty;
+        toBranchId = string.Empty;
+        await UpdateAvailableStock();
+    }
+
+    private async Task UpdateAvailableStock()
+    {
+        availableStock = 0;
+        if (string.IsNullOrEmpty(selectedItemId) || string.IsNullOrEmpty(fromBranchId))
+        {
+            StateHasChanged();
+            return;
+        }
+
+        var allStocks = await StockService.GetAllStocksAsync();
+        var stock = allStocks.FirstOrDefault(s => s.ItemId == selectedItemId && s.BranchId == fromBranchId);
+        availableStock = stock?.Quantity ?? 0;
+
+        StateHasChanged();
+    }
+
+    private void ValidateQuantity(int value)
+    {
+        quantity = value;
+        if (availableStock >= 0 && quantity > availableStock)
+        {
+            Snackbar.Add($"Not enough stock. Available: {availableStock} {unit}", Severity.Error);
+            isValid = false;
+        }
+        else
+        {
+            isValid = true;
+        }
+    }
+
+    private async Task Transfer()
+    {
+        await form!.Validate();
+        if (!isValid || quantity > availableStock)
+        {
+            Snackbar.Add($"Cannot transfer {quantity}. Only {availableStock} available.", Severity.Error);
+            return;
+        }
+
+        if (fromBranchId == toBranchId)
+        {
+            Snackbar.Add("Source and destination branches cannot be the same.", Severity.Error);
+            return;
+        }
+
+        try
+        {
+            await StockService.TransferAsync(selectedItemId, fromBranchId, toBranchId, quantity, unit);
+            Snackbar.Add("Stock transferred successfully!", Severity.Success);
+            await OnSave.InvokeAsync(true);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error during transfer: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

@@ -1,0 +1,148 @@
+﻿@rendermode InteractiveServer
+@using MudBlazor
+@using SushiInventorySystem.Models
+@using SushiInventorySystem.Services.Interfaces
+@inject IStockService StockService
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudForm @ref="form" @bind-IsValid="isValid">
+            <!-- Item -->
+            <MudSelect T="string"
+                       Label="Item"
+                       Value="@selectedItemId"
+                       ValueChanged="OnItemChanged"
+                       Required="true"
+                       Immediate="true">
+                @foreach (var item in Items)
+                {
+                    <MudSelectItem Value="@item.ItemId">@item.ItemName</MudSelectItem>
+                }
+            </MudSelect>
+
+            <!-- Branch -->
+            <MudSelect T="string"
+                       Label="Branch"
+                       Value="@selectedBranchId"
+                       ValueChanged="OnBranchChanged"
+                       Required="true"
+                       Immediate="true"
+                       Class="mt-3">
+                @foreach (var branch in Branches)
+                {
+                    <MudSelectItem Value="@branch.BranchId">@branch.BranchName</MudSelectItem>
+                }
+            </MudSelect>
+
+            <!-- Quantity -->
+            <MudNumericField T="int"
+                             Label="Quantity to Add"
+                             Value="@quantity"
+                             ValueChanged="ValidateQuantity"
+                             Required="true"
+                             Immediate="true"
+                             Class="mt-3"
+                             Placeholder="Enter quantity" />
+
+            @if (availableStock >= 0 && !string.IsNullOrEmpty(selectedItemId) && !string.IsNullOrEmpty(selectedBranchId))
+            {
+                <MudText Typo="Typo.caption" Class="text-secondary mt-1">
+                    Current Stock: <b>@availableStock</b>
+                </MudText>
+            }
+        </MudForm>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   OnClick="Save"
+                   Disabled="@(!isValid || quantity <= 0)">
+            Save
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public List<Item> Items { get; set; } = new();
+    [Parameter] public List<Branch> Branches { get; set; } = new();
+    [Parameter] public EventCallback<bool> OnSave { get; set; }
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; }
+
+    private MudForm? form;
+    private bool isValid;
+    private string selectedItemId = string.Empty;
+    private string selectedBranchId = string.Empty;
+    private int quantity;
+    private int availableStock = -1;
+
+    private async Task OnItemChanged(string? value)
+    {
+        selectedItemId = value ?? string.Empty;
+        await UpdateAvailableStock();
+    }
+
+    private async Task OnBranchChanged(string? value)
+    {
+        selectedBranchId = value ?? string.Empty;
+        await UpdateAvailableStock();
+    }
+
+    private async Task UpdateAvailableStock()
+    {
+        availableStock = 0;
+        if (string.IsNullOrEmpty(selectedItemId) || string.IsNullOrEmpty(selectedBranchId))
+        {
+            StateHasChanged();
+            return;
+        }
+
+        var allStocks = await StockService.GetAllStocksAsync();
+        var stock = allStocks.FirstOrDefault(s => s.ItemId == selectedItemId && s.BranchId == selectedBranchId);
+        availableStock = stock?.Quantity ?? 0;
+
+        StateHasChanged();
+    }
+
+    private void ValidateQuantity(int value)
+    {
+        quantity = value;
+
+        if (quantity <= 0)
+        {
+            Snackbar.Add("Please enter a valid quantity greater than zero.", Severity.Warning);
+            isValid = false;
+        }
+        else
+        {
+            isValid = true;
+        }
+    }
+
+    private async Task Save()
+    {
+        await form!.Validate();
+
+        if (!isValid || quantity <= 0)
+        {
+            Snackbar.Add("Please enter a valid quantity greater than zero.", Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            await StockService.StockInAsync(selectedItemId, selectedBranchId, quantity);
+            Snackbar.Add("Stock added successfully!", Severity.Success);
+            await OnSave.InvokeAsync(true);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error adding stock: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}
